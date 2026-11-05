@@ -1,0 +1,19 @@
+# Окружение для ручного запуска приложения (mvn spring-boot:run).
+# Тестам docker-compose НЕ нужен: они сами поднимают PostgreSQL через Testcontainers.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: library
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library
+    ports:
+      - "5432:5432"
+
+  # Заглушка внешнего ISBN-сервиса: ISBN, начинающиеся с 978, валидны, остальные нет
+  isbn-service:
+    image: wiremock/wiremock:3.13.1
+    ports:
+      - "8089:8080"
+    volumes:
+      - ./wiremock:/home/wiremock

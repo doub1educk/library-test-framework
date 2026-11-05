@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "BookResponse",
+  "type": "object",
+  "required": ["id", "title", "author", "isbn", "publishedYear", "available", "createdAt"],
+  "additionalProperties": false,
+  "properties": {
+    "id":            { "type": "integer", "minimum": 1 },
+    "title":         { "type": "string", "minLength": 1, "maxLength": 255 },
+    "author":        { "type": "string", "minLength": 1, "maxLength": 255 },
+    "isbn":          { "type": "string", "pattern": "^[0-9]{13}$" },
+    "publishedYear": { "type": "integer", "minimum": 1450, "maximum": 2100 },
+    "available":     { "type": "boolean" },
+    "createdAt":     { "type": "string", "minLength": 1 }
+  }
+}

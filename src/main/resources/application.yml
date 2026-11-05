@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: library-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/library
+    username: library
+    password: library
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+isbn-service:
+  base-url: http://localhost:8089
+  timeout: 2s
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
