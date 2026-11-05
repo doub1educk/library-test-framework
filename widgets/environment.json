@@ -1,0 +1,1 @@
+[{"values":["library-service"],"name":"Application"},{"values":["1.0.0"],"name":"App.Version"},{"values":["25.0.5"],"name":"Java"},{"values":["3.5.16"],"name":"Spring.Boot"},{"values":["PostgreSQL 17 (Testcontainers)"],"name":"Database"},{"values":["ISBN service (WireMock)"],"name":"External.Services"}]
