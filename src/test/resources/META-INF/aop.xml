@@ -1,0 +1,5 @@
+<aspectj>
+    <weaver options="-warn:none -Xlint:ignore">
+        <include within="ru.study.library..*"/>
+    </weaver>
+</aspectj>

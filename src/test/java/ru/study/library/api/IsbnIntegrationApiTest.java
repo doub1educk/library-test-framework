@@ -54,19 +54,22 @@ class IsbnIntegrationApiTest extends BaseApiTest {
     @Test
     @Story("Отказ внешнего сервиса")
     @Severity(SeverityLevel.NORMAL)
-    @Description("Таймаут клиента в тестах 1 секунда, мок отвечает через 1.5 секунды. "
-            + "Приложение не должно зависать, а должно вернуть 503.")
+    @Description("Таймаут клиента в тестах 1 секунда, мок отвечает через 5 секунд. "
+            + "Приложение должно прервать ожидание, вернуть 503 и не повторять запрос.")
     @DisplayName("Внешний сервис отвечает слишком долго -> срабатывает таймаут, 503")
     void externalServiceTimeout() {
-        IsbnServiceMock.respondsSlowly(Duration.ofMillis(1500));
+        Duration mockDelay = Duration.ofSeconds(5);
+        IsbnServiceMock.respondsSlowly(mockDelay);
+        BookRequest request = BookDataFactory.validBook();
 
         long startedAt = System.nanoTime();
-        bookClient.create(BookDataFactory.validBook()).then().spec(Specs.problem(503));
+        bookClient.create(request).then().spec(Specs.problem(503));
         Duration elapsed = Duration.ofNanos(System.nanoTime() - startedAt);
 
-        Allure.step("Ответ пришёл быстрее, чем задержка мока (сработал таймаут): " + elapsed.toMillis() + " мс", () -> {
-            assertThat(elapsed).isLessThan(Duration.ofMillis(1500));
+        Allure.step("Ответ пришёл до того, как мок ответил: " + elapsed.toMillis() + " мс", () -> {
+            assertThat(elapsed).isLessThan(mockDelay.minusSeconds(1));
         });
+        IsbnServiceMock.verifyCalled(1, request.isbn());
     }
 
     @Test
