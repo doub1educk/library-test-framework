@@ -1,0 +1,31 @@
+<div>POST to http://localhost:42415/api/v1/books</div>
+
+    <h4>Body</h4>
+    <div>
+    <pre class="preformated-text">
+{
+    &quot;title&quot;: &quot;A Time of Gifts&quot;,
+    &quot;author&quot;: &quot;Mui Homenick&quot;,
+    &quot;isbn&quot;: &quot;9780634264915&quot;,
+    &quot;publishedYear&quot;: 1969
+}    </pre>
+    </div>
+
+    <h4>Headers</h4>
+    <div>
+            <div>Accept: */*</div>
+            <div>Content-Type: application/json</div>
+    </div>
+
+
+
+    <h4>Curl</h4>
+    <div>
+        curl -v -X POST &#39;http://localhost:42415/api/v1/books&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;title&quot;: &quot;A Time of Gifts&quot;,
+    &quot;author&quot;: &quot;Mui Homenick&quot;,
+    &quot;isbn&quot;: &quot;9780634264915&quot;,
+    &quot;publishedYear&quot;: 1969
+}&#39;
+    </div>
+

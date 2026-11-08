@@ -1,0 +1,31 @@
+<div>POST to http://localhost:42415/api/v1/books</div>
+
+    <h4>Body</h4>
+    <div>
+    <pre class="preformated-text">
+{
+    &quot;title&quot;: &quot;Clouds of Witness&quot;,
+    &quot;author&quot;: null,
+    &quot;isbn&quot;: &quot;9781438825538&quot;,
+    &quot;publishedYear&quot;: 1998
+}    </pre>
+    </div>
+
+    <h4>Headers</h4>
+    <div>
+            <div>Accept: */*</div>
+            <div>Content-Type: application/json</div>
+    </div>
+
+
+
+    <h4>Curl</h4>
+    <div>
+        curl -v -X POST &#39;http://localhost:42415/api/v1/books&#39; -H &#39;Accept: */*&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;title&quot;: &quot;Clouds of Witness&quot;,
+    &quot;author&quot;: null,
+    &quot;isbn&quot;: &quot;9781438825538&quot;,
+    &quot;publishedYear&quot;: 1998
+}&#39;
+    </div>
+
