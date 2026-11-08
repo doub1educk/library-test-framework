@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BookRequest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-test-framework</a> &gt; <a href="index.source.html" class="el_package">ru.study.library.book</a> &gt; <span class="el_source">BookRequest.java</span></div><h1>BookRequest.java</h1><pre class="source lang-java linenums">package ru.study.library.book;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+<span class="fc" id="L10">public record BookRequest(</span>
+        @NotBlank(message = &quot;Название обязательно&quot;)
+        @Size(max = 255, message = &quot;Название не длиннее 255 символов&quot;)
+        String title,
+
+        @NotBlank(message = &quot;Автор обязателен&quot;)
+        @Size(max = 255, message = &quot;Имя автора не длиннее 255 символов&quot;)
+        String author,
+
+        @NotBlank(message = &quot;ISBN обязателен&quot;)
+        @Pattern(regexp = &quot;\\d{13}&quot;, message = &quot;ISBN должен состоять из 13 цифр&quot;)
+        String isbn,
+
+        @NotNull(message = &quot;Год издания обязателен&quot;)
+        @Min(value = 1450, message = &quot;Год издания не раньше 1450&quot;)
+        @Max(value = 2100, message = &quot;Год издания не позже 2100&quot;)
+        Integer publishedYear
+) {
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

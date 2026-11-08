@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GlobalExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">library-test-framework</a> &gt; <a href="index.source.html" class="el_package">ru.study.library.web</a> &gt; <span class="el_source">GlobalExceptionHandler.java</span></div><h1>GlobalExceptionHandler.java</h1><pre class="source lang-java linenums">package ru.study.library.web;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.study.library.book.BookNotFoundException;
+import ru.study.library.book.DuplicateIsbnException;
+import ru.study.library.isbn.InvalidIsbnException;
+import ru.study.library.isbn.IsbnServiceUnavailableException;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+/**
+ * Единый формат ошибок по RFC 9457 (Problem Details).
+ */
+@RestControllerAdvice
+<span class="fc" id="L24">public class GlobalExceptionHandler {</span>
+
+    @ExceptionHandler(BookNotFoundException.class)
+    public ProblemDetail handleNotFound(BookNotFoundException e) {
+<span class="fc" id="L28">        return problem(HttpStatus.NOT_FOUND, &quot;Книга не найдена&quot;, e.getMessage());</span>
+    }
+
+    @ExceptionHandler(DuplicateIsbnException.class)
+    public ProblemDetail handleDuplicate(DuplicateIsbnException e) {
+<span class="fc" id="L33">        return problem(HttpStatus.CONFLICT, &quot;Дубликат ISBN&quot;, e.getMessage());</span>
+    }
+
+    @ExceptionHandler(InvalidIsbnException.class)
+    public ProblemDetail handleInvalidIsbn(InvalidIsbnException e) {
+<span class="fc" id="L38">        return problem(HttpStatus.UNPROCESSABLE_ENTITY, &quot;Некорректный ISBN&quot;, e.getMessage());</span>
+    }
+
+    @ExceptionHandler(IsbnServiceUnavailableException.class)
+    public ProblemDetail handleIsbnServiceDown(IsbnServiceUnavailableException e) {
+<span class="fc" id="L43">        return problem(HttpStatus.SERVICE_UNAVAILABLE, &quot;Внешний сервис недоступен&quot;, e.getMessage());</span>
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidation(MethodArgumentNotValidException e) {
+<span class="fc" id="L48">        Map&lt;String, String&gt; errors = e.getBindingResult().getFieldErrors().stream()</span>
+<span class="fc" id="L49">                .collect(Collectors.toMap(</span>
+                        FieldError::getField,
+<span class="fc" id="L51">                        fe -&gt; Objects.requireNonNullElse(fe.getDefaultMessage(), &quot;некорректное значение&quot;),</span>
+<span class="nc" id="L52">                        (first, second) -&gt; first,</span>
+                        TreeMap::new));
+<span class="fc" id="L54">        ProblemDetail detail = problem(HttpStatus.BAD_REQUEST, &quot;Ошибка валидации&quot;, &quot;Запрос содержит некорректные поля&quot;);</span>
+<span class="fc" id="L55">        detail.setProperty(&quot;errors&quot;, errors);</span>
+<span class="fc" id="L56">        return detail;</span>
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleUnreadable(HttpMessageNotReadableException e) {
+<span class="fc" id="L61">        return problem(HttpStatus.BAD_REQUEST, &quot;Некорректный JSON&quot;, &quot;Тело запроса не удалось разобрать&quot;);</span>
+    }
+
+    private static ProblemDetail problem(HttpStatus status, String title, String detail) {
+<span class="fc" id="L65">        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);</span>
+<span class="fc" id="L66">        problemDetail.setTitle(title);</span>
+<span class="fc" id="L67">        return problemDetail;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
