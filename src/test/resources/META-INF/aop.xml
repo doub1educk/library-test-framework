@@ -1,5 +1,6 @@
 <aspectj>
     <weaver options="-warn:none -Xlint:ignore">
         <include within="ru.study.library..*"/>
+        <include within="io.qameta.allure..*"/>
     </weaver>
 </aspectj>
