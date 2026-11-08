@@ -1,7 +1,7 @@
 # Library Service + Test Automation Framework
 
-[![tests](https://github.com/doubleduck1/library-test-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/doubleduck1/library-test-framework/actions/workflows/tests.yml)
-[![coverage](https://doubleduck1.github.io/library-test-framework/badges/coverage.svg)](https://doubleduck1.github.io/library-test-framework/jacoco/)
+[![tests](https://github.com/doub1educk/library-test-framework/actions/workflows/tests.yml/badge.svg)](https://github.com/doub1educk/library-test-framework/actions/workflows/tests.yml)
+[![coverage](https://doub1educk.github.io/library-test-framework/badges/coverage.svg)](https://doub1educk.github.io/library-test-framework/jacoco/)
 ![Java](https://img.shields.io/badge/Java-25-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F)
 ![Allure](https://img.shields.io/badge/report-Allure-yellow)
@@ -14,9 +14,9 @@ unit, slice, API и архитектурные тесты, реальная БД
 
 | Что | Ссылка |
 |---|---|
-| **Allure-отчёт**: все тесты, шаги, HTTP-запросы и ответы | **https://doubleduck1.github.io/library-test-framework/** |
-| Покрытие кода (JaCoCo) | https://doubleduck1.github.io/library-test-framework/jacoco/ |
-| История прогонов в CI | [GitHub Actions](https://github.com/doubleduck1/library-test-framework/actions) |
+| **Allure-отчёт**: все тесты, шаги, HTTP-запросы и ответы | **https://doub1educk.github.io/library-test-framework/** |
+| Покрытие кода (JaCoCo) | https://doub1educk.github.io/library-test-framework/jacoco/ |
+| История прогонов в CI | [GitHub Actions](https://github.com/doub1educk/library-test-framework/actions) |
 
 ### Как выглядит отчёт
 
