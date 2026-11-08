@@ -25,7 +25,6 @@ jobs:
       - name: Run tests (unit, slice, api, architecture) + coverage check
         run: mvn -B verify
 
-      # --- Allure: подтягиваем историю прошлых прогонов, чтобы в отчёте были тренды ---
       - name: Checkout gh-pages (history)
         if: always()
         continue-on-error: true
@@ -37,9 +36,12 @@ jobs:
       - name: Restore Allure history
         if: always()
         run: |
-          if [ -d gh-pages/history ]; then
+          if git ls-remote --exit-code --heads origin gh-pages > /dev/null; then
+            git fetch --depth=1 origin gh-pages
             mkdir -p target/allure-results
-            cp -r gh-pages/history target/allure-results/history
+            git archive FETCH_HEAD history | tar -x -C target/allure-results || true
+          else
+            echo "Ветки gh-pages пока нет (первый прогон), история пропущена"
           fi
 
       - name: Build Allure report
