@@ -6,10 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/**
- * Настоящий PostgreSQL в Docker. @ServiceConnection сам прокидывает URL/логин/пароль в Spring,
- * поэтому никаких spring.datasource.* в тестах писать не нужно.
- */
+
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 

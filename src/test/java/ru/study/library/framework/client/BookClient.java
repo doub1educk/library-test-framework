@@ -6,10 +6,7 @@ import ru.study.library.book.BookRequest;
 
 import static io.restassured.RestAssured.given;
 
-/**
- * Низкоуровневый HTTP-клиент: только отправка запросов, никаких проверок.
- * Проверки живут в тестах и шагах, чтобы клиент можно было использовать и для негативных сценариев.
- */
+
 public class BookClient {
 
     private final RequestSpecification spec;

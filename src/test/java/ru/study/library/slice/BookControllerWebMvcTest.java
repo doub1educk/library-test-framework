@@ -28,10 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Slice-тест: поднимается только веб-слой (контроллер + ControllerAdvice + Jackson + Validation).
- * Сервис подменяется моком, БД и внешние сервисы не нужны, поэтому тест очень быстрый.
- */
+
 @Tag("slice")
 @Epic("Библиотека")
 @Feature("Веб-слой")

@@ -17,10 +17,7 @@ import ru.study.library.book.BookRepository;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-/**
- * Slice-тест слоя данных: JPA + Flyway-миграции на настоящем PostgreSQL (Testcontainers).
- * Каждый тест выполняется в транзакции и откатывается.
- */
+
 @Tag("slice")
 @Epic("Библиотека")
 @Feature("Слой данных")

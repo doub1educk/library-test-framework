@@ -15,14 +15,11 @@ import io.restassured.specification.ResponseSpecification;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- * Общие спецификации запросов и ответов.
- */
+
 public final class Specs {
 
     public static final String BOOKS_PATH = "/api/v1/books";
 
-    /** ObjectMapper с поддержкой java.time (Instant в ответах). */
     private static final RestAssuredConfig CONFIG = RestAssuredConfig.config()
             .objectMapperConfig(ObjectMapperConfig.objectMapperConfig()
                     .jackson2ObjectMapperFactory((type, charset) -> new ObjectMapper()
@@ -52,7 +49,6 @@ public final class Specs {
                 .build();
     }
 
-    /** Ответ-ошибка в формате Problem Details (RFC 9457). */
     public static ResponseSpecification problem(int statusCode) {
         return new ResponseSpecBuilder()
                 .expectStatusCode(statusCode)

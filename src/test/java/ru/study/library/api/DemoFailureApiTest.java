@@ -13,14 +13,6 @@ import ru.study.library.framework.assertions.BookAssert;
 import ru.study.library.framework.base.BaseApiTest;
 import ru.study.library.framework.data.BookDataFactory;
 
-/**
- * НАМЕРЕННО ПАДАЮЩИЙ тест для демонстрации на защите:
- * как выглядит упавший тест в Allure (категория «Дефекты продукта»,
- * мягкие проверки со всеми расхождениями, снимок БД во вложении).
- * <p>
- * По умолчанию исключён из прогона (тег demo).
- * Запуск: mvn test -Dgroups=demo -DexcludedGroups=none
- */
 @Tag("demo")
 @Epic("Библиотека")
 @Feature("Демонстрация падения")

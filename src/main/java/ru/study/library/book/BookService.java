@@ -59,10 +59,6 @@ public class BookService {
         repository.deleteById(id);
     }
 
-    /**
-     * Порядок проверок важен: сначала дешёвая проверка в своей БД,
-     * и только потом обращение к внешнему сервису.
-     */
     private void checkIsbnCanBeUsed(String isbn) {
         if (repository.existsByIsbn(isbn)) {
             throw new DuplicateIsbnException(isbn);

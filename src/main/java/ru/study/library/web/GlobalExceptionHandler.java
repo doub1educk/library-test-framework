@@ -17,9 +17,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-/**
- * Единый формат ошибок по RFC 9457 (Problem Details).
- */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

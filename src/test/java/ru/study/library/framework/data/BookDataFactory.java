@@ -6,10 +6,7 @@ import ru.study.library.book.BookRequest;
 
 import java.util.stream.Stream;
 
-/**
- * Генерация тестовых данных. Каждый вызов даёт новую уникальную книгу,
- * поэтому тесты не зависят друг от друга и от порядка запуска.
- */
+
 public final class BookDataFactory {
 
     private static final Faker FAKER = new Faker();
@@ -42,7 +39,6 @@ public final class BookDataFactory {
         return "978" + FAKER.number().digits(10);
     }
 
-    /** Негативные данные для параметризованных тестов: (описание, запрос, поле с ошибкой). */
     public static Stream<Arguments> invalidBooks() {
         BookRequest v = validBook();
         return Stream.of(

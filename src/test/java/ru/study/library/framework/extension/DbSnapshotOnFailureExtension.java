@@ -8,10 +8,7 @@ import ru.study.library.book.BookRepository;
 
 import java.util.stream.Collectors;
 
-/**
- * JUnit 5 расширение: если тест упал, прикладывает к нему в Allure
- * текущее содержимое таблицы books. Сильно упрощает разбор падений.
- */
+
 public class DbSnapshotOnFailureExtension implements AfterTestExecutionCallback {
 
     @Override

@@ -15,9 +15,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_USE_FIELD_INJECTION;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 
-/**
- * Архитектурные тесты: правила, которые проверяют структуру кода, а не поведение.
- */
+
 @ArchTag("architecture")
 @AnalyzeClasses(packages = "ru.study.library", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {

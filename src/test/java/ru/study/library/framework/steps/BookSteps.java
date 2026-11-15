@@ -9,9 +9,7 @@ import ru.study.library.framework.data.BookDataFactory;
 
 import java.util.List;
 
-/**
- * Бизнес-шаги. Каждый метод с @Step становится узлом в дереве шагов Allure-отчёта.
- */
+
 public class BookSteps {
 
     private final BookClient client;

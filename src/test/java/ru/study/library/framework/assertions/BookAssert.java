@@ -5,10 +5,7 @@ import org.assertj.core.api.SoftAssertions;
 import ru.study.library.book.BookRequest;
 import ru.study.library.book.BookResponse;
 
-/**
- * Собственный AssertJ-ассерт: тесты читаются как предложения
- * BookAssert.assertThat(book).hasGeneratedId().matches(request).isAvailable();
- */
+
 public class BookAssert extends AbstractAssert<BookAssert, BookResponse> {
 
     private BookAssert(BookResponse actual) {
@@ -27,7 +24,6 @@ public class BookAssert extends AbstractAssert<BookAssert, BookResponse> {
         return this;
     }
 
-    /** Мягкие проверки: в отчёте будут видны ВСЕ несовпавшие поля, а не только первое. */
     public BookAssert matches(BookRequest expected) {
         isNotNull();
         SoftAssertions.assertSoftly(softly -> {

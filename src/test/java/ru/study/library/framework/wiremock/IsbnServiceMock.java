@@ -14,13 +14,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
-/**
- * Эмуляция внешнего сервиса проверки ISBN.
- * <p>
- * Сервер один на всю JVM: Spring кэширует контекст между тестовыми классами,
- * и если бы у каждого класса был свой WireMock на новом порту, закэшированный
- * контекст продолжал бы ходить на старый порт. Поэтому singleton + reset перед каждым тестом.
- */
 public final class IsbnServiceMock {
 
     private static final WireMockServer SERVER = new WireMockServer(options().dynamicPort());
@@ -37,7 +30,6 @@ public final class IsbnServiceMock {
         return SERVER.baseUrl();
     }
 
-    /** Сброс к поведению по умолчанию: любой ISBN валиден. Без @Step, чтобы не засорять отчёт. */
     public static void resetToDefault() {
         SERVER.resetAll();
         SERVER.stubFor(get(urlPathMatching("/api/isbn/.*")).willReturn(okJson("{\"valid\": true}")));

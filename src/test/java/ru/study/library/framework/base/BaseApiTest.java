@@ -11,10 +11,7 @@ import ru.study.library.framework.client.BookClient;
 import ru.study.library.framework.steps.BookSteps;
 import ru.study.library.framework.wiremock.IsbnServiceMock;
 
-/**
- * Базовый класс для API-тестов: поднятое приложение, чистая БД и сброшенный мок
- * внешнего сервиса перед каждым тестом.
- */
+
 @ApiTest
 public abstract class BaseApiTest {
 
