@@ -1,0 +1,32 @@
+<testsuites id="" name="" tests="4" failures="1" skipped="1" errors="0" time="12.345">
+<testsuite name="checkout.spec.ts" timestamp="2026-11-15T10:00:00.000Z" hostname="chromium" tests="3" failures="1" skipped="1" time="9.1" errors="0">
+<testcase name="Checkout › adds item to cart" classname="checkout.spec.ts" time="2.5">
+</testcase>
+<testcase name="Checkout › pays with card" classname="checkout.spec.ts" time="6.6">
+<failure message="checkout.spec.ts:42:5 pays with card" type="FAILURE">
+<![CDATA[  [chromium] › checkout.spec.ts:42:5 › Checkout › pays with card ───────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByText('Payment accepted')
+    Expected: visible
+    Timeout: 5000ms
+
+      at /home/runner/work/shop/tests/checkout.spec.ts:57:41
+]]>
+</failure>
+<system-out>
+<![CDATA[[[ATTACHMENT|test-results/checkout-pays/trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Checkout › applies coupon" classname="checkout.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="login.spec.ts" timestamp="2026-11-15T10:00:09.000Z" hostname="chromium" tests="1" failures="0" skipped="0" time="3.2" errors="0">
+<testcase name="Login › signs in" classname="login.spec.ts" time="3.2">
+</testcase>
+</testsuite>
+</testsuites>

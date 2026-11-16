@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Проекты')}"></head>
+<body>
+<header th:replace="~{fragments :: header(null)}"></header>
+<main>
+    <h1>Проекты</h1>
+    <div class="subtitle">Последний прогон и число нестабильных тестов в каждом проекте</div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Проект</th>
+                <th>Последний прогон</th>
+                <th>Решение</th>
+                <th class="num">Тестов</th>
+                <th class="num">Упало</th>
+                <th class="num">Флаки</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${projects}">
+                <td>
+                    <a th:href="@{/projects/{key}(key=${row.project().key()})}" th:text="${row.project().name()}">Проект</a>
+                    <div class="message"><code th:text="${row.project().key()}">key</code></div>
+                </td>
+                <td th:if="${row.lastRun() != null}">
+                    <a th:href="@{/projects/{key}/runs/{id}(key=${row.project().key()},id=${row.lastRun().id()})}"
+                       th:text="'#' + ${row.lastRun().id()}">#1</a>
+                    · <code th:text="${row.lastRun().branch()}">main</code>
+                    · <span th:text="${#temporals.format(row.lastRun().receivedAt(), 'dd.MM HH:mm')}">time</span>
+                </td>
+                <td th:if="${row.lastRun() == null}" class="message">ещё нет прогонов</td>
+                <td><span th:if="${row.lastRun() != null}" class="badge" th:classappend="${row.lastRun().decision()}"
+                          th:text="${row.lastRun().decision()}">PASS</span></td>
+                <td class="num" th:text="${row.lastRun() != null ? row.lastRun().total() : '—'}">0</td>
+                <td class="num" th:text="${row.lastRun() != null ? row.lastRun().failed() : '—'}">0</td>
+                <td class="num" th:text="${row.flakyTests()}">0</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(projects)}">
+                <td colspan="6" class="empty">Проектов пока нет. Создайте проект через
+                    <code>POST /api/v1/projects</code> с заголовком <code>X-Admin-Token</code>.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

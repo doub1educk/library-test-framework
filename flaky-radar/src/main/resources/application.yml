@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: flaky-radar
+  datasource:
+    url: jdbc:postgresql://localhost:5433/flakyradar
+    username: flakyradar
+    password: flakyradar
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+  threads:
+    virtual:
+      enabled: true
+
+flaky-radar:
+  # токен администратора: нужен только для создания проектов (POST /api/v1/projects)
+  admin-token: ${FLAKY_RADAR_ADMIN_TOKEN:change-me}
+  # адрес, по которому сервис доступен снаружи (ссылки в сводках)
+  public-url: ${FLAKY_RADAR_PUBLIC_URL:http://localhost:8080}
+  detection:
+    window: 30            # сколько последних результатов теста анализировать
+    min-runs: 5           # меньше результатов: правило переключений не применяется
+    min-flips: 3          # столько переключений pass/fail в окне делают тест флаки
+    broken-streak: 3      # столько падений подряд на ветке (включая текущее): LONG_BROKEN
+  ingest:
+    max-message-length: 4000
+  telegram:
+    enabled: ${FLAKY_RADAR_TELEGRAM_ENABLED:false}
+    base-url: https://api.telegram.org
+    bot-token: ${FLAKY_RADAR_TELEGRAM_BOT_TOKEN:}
+    chat-id: ${FLAKY_RADAR_TELEGRAM_CHAT_ID:}
+    timeout: 5s
+    notify-on-pass: false   # зелёные прогоны в чат не шлём
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

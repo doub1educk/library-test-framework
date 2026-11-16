@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Не найдено')}"></head>
+<body>
+<header th:replace="~{fragments :: header(null)}"></header>
+<main>
+    <h1>Не найдено</h1>
+    <p class="subtitle" th:text="${message}">Страница не найдена</p>
+    <p><a th:href="@{/}">К списку проектов</a></p>
+</main>
+</body>
+</html>

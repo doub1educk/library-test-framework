@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Группа ошибок')}"></head>
+<body>
+<header th:replace="~{fragments :: header(${project})}"></header>
+<main th:with="s=${details.signature()}">
+    <h1>Группа ошибок <code th:text="${s.shortHash()}">hash</code></h1>
+    <div class="subtitle">
+        Встречалась <b th:text="${s.occurrences()}">0</b> раз в <b th:text="${s.affectedTests()}">0</b> тестах
+        · впервые <span th:text="${#temporals.format(s.firstSeen(), 'dd.MM.yyyy HH:mm')}">date</span>
+        · последний раз <span th:text="${#temporals.format(s.lastSeen(), 'dd.MM.yyyy HH:mm')}">date</span>
+    </div>
+
+    <h2>Нормализованная подпись</h2>
+    <pre th:text="${s.normalizedText()}">text</pre>
+
+    <h2>Пример исходного сообщения</h2>
+    <pre th:text="${s.sampleMessage()}">message</pre>
+
+    <h2>Где встречалась</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Прогон</th><th>Ветка</th><th>Тест</th><th>Статус</th><th>Время</th></tr></thead>
+            <tbody>
+            <tr th:each="o : ${details.occurrences()}">
+                <td><a th:href="@{/projects/{key}/runs/{id}(key=${project.key()},id=${o.runId()})}" th:text="'#' + ${o.runId()}">#1</a></td>
+                <td><code th:text="${o.branch()}">main</code></td>
+                <td><a th:href="@{/projects/{key}/tests/{id}(key=${project.key()},id=${o.testCaseId()})}"><code th:text="${o.testName()}">test</code></a></td>
+                <td><span class="badge" th:classappend="${o.status()}" th:text="${o.status()}">FAILED</span></td>
+                <td th:text="${#temporals.format(o.receivedAt(), 'dd.MM.yyyy HH:mm')}">time</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

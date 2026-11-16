@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${project.name()})}"></head>
+<body>
+<header th:replace="~{fragments :: header(${project})}"></header>
+<main>
+    <h1 th:text="${project.name()}">Проект</h1>
+    <div class="subtitle">Ключ <code th:text="${project.key()}">key</code></div>
+
+    <div class="grid">
+        <div class="card stat">
+            <div class="value" th:text="${#lists.size(runs)}">0</div>
+            <div class="label">прогонов показано</div>
+        </div>
+        <div class="card stat">
+            <div class="value" th:text="${#lists.size(flaky)}">0</div>
+            <div class="label">нестабильных тестов</div>
+        </div>
+        <div class="card stat">
+            <div class="value" th:text="${#lists.size(quarantine)}">0</div>
+            <div class="label">в карантине</div>
+        </div>
+        <div class="card stat">
+            <div class="value" th:text="${#lists.size(signatures)}">0</div>
+            <div class="label">групп ошибок</div>
+        </div>
+    </div>
+
+    <h2>Прогоны</h2>
+    <form class="filter" method="get">
+        <input type="text" name="branch" placeholder="ветка" th:value="${branch}">
+        <button type="submit">Фильтр</button>
+        <a th:if="${branch != null}" th:href="@{/projects/{key}(key=${project.key()})}">сбросить</a>
+    </form>
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th><th>Ветка</th><th>Коммит</th><th class="num">Попытка</th><th>Время</th>
+                <th class="num">Всего</th><th class="num">Упало</th><th class="num">Пропущено</th><th>Решение</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="run : ${runs}">
+                <td><a th:href="@{/projects/{key}/runs/{id}(key=${project.key()},id=${run.id()})}" th:text="${run.id()}">1</a></td>
+                <td><a th:href="@{/projects/{key}(key=${project.key()},branch=${run.branch()})}"><code th:text="${run.branch()}">main</code></a></td>
+                <td><code th:text="${run.shortSha()}">abc1234</code></td>
+                <td class="num" th:text="${run.attempt()}">1</td>
+                <td th:text="${#temporals.format(run.receivedAt(), 'dd.MM.yyyy HH:mm')}">time</td>
+                <td class="num" th:text="${run.total()}">0</td>
+                <td class="num" th:text="${run.failed()}">0</td>
+                <td class="num" th:text="${run.skipped()}">0</td>
+                <td><span class="badge" th:classappend="${run.decision()}" th:text="${run.decision()}">PASS</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(runs)}"><td colspan="9" class="empty">Прогонов пока нет</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Нестабильные тесты</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Тест</th><th class="num">Переключений</th><th>Последний статус</th><th>Карантин</th></tr></thead>
+            <tbody>
+            <tr th:each="t : ${flaky}">
+                <td><a th:href="@{/projects/{key}/tests/{id}(key=${project.key()},id=${t.id()})}"><code th:text="${t.fullName()}">test</code></a></td>
+                <td class="num" th:text="${t.flipCount()}">0</td>
+                <td><span th:if="${t.lastStatus() != null}" class="badge" th:classappend="${t.lastStatus()}" th:text="${t.lastStatus()}">PASSED</span></td>
+                <td><span th:if="${t.quarantined()}" class="badge muted">в карантине</span></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(flaky)}"><td colspan="4" class="empty">Нестабильных тестов нет</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Группы ошибок</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Ошибка</th><th class="num">Раз</th><th class="num">Тестов</th><th>Последний раз</th></tr></thead>
+            <tbody>
+            <tr th:each="s : ${signatures}">
+                <td>
+                    <a th:href="@{/projects/{key}/signatures/{id}(key=${project.key()},id=${s.id()})}">
+                        <code th:text="${s.exceptionType() != null ? s.exceptionType() : s.shortHash()}">Type</code>
+                    </a>
+                    <div class="message" th:text="${s.sampleMessage()}">message</div>
+                </td>
+                <td class="num" th:text="${s.occurrences()}">0</td>
+                <td class="num" th:text="${s.affectedTests()}">0</td>
+                <td th:text="${#temporals.format(s.lastSeen(), 'dd.MM.yyyy HH:mm')}">time</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(signatures)}"><td colspan="4" class="empty">Падений пока не было</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Карантин</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Тест</th><th>Причина</th><th>Кто</th><th>До</th></tr></thead>
+            <tbody>
+            <tr th:each="q : ${quarantine}">
+                <td><a th:href="@{/projects/{key}/tests/{id}(key=${project.key()},id=${q.testCaseId()})}"><code th:text="${q.testName()}">test</code></a></td>
+                <td th:text="${q.reason()}">reason</td>
+                <td th:text="${q.createdBy()}">qa</td>
+                <td th:text="${q.expiresAt() != null ? #temporals.format(q.expiresAt(), 'dd.MM.yyyy HH:mm') : 'бессрочно'}">—</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(quarantine)}"><td colspan="4" class="empty">Карантин пуст</td></tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

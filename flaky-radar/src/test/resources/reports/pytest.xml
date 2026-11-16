@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="1" tests="4" time="1.234" timestamp="2026-11-15T10:00:00.000000+00:00" hostname="runner"><testcase classname="tests.test_api" name="test_health" time="0.010" /><testcase classname="tests.test_api" name="test_create_order[eu]" time="0,250"><failure message="AssertionError: assert 503 == 201&#10; +  where 503 = &lt;Response [503]&gt;.status_code">def test_create_order(region):
+        response = client.post("/orders", json={"region": region})
+&gt;       assert response.status_code == 201
+E       AssertionError: assert 503 == 201
+
+tests/test_api.py:27: AssertionError</failure></testcase><testcase classname="tests.test_api" name="test_legacy" time="0.000"><skipped type="pytest.skip" message="legacy API removed">tests/test_api.py:40: legacy API removed</skipped></testcase><testcase classname="tests.test_api" name="test_retry" time="0.100"><failure message="TimeoutError: timed out">tests/test_api.py:50: TimeoutError</failure></testcase><testcase classname="tests.test_api" name="test_retry" time="0.090" /></testsuite></testsuites>
