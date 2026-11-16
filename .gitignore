@@ -3,4 +3,9 @@ target/
 *.iml
 out/
 .DS_Store
-ajcore.*.txt`
+ajcore.*.txt
+.allure/
+
+# артефакты scripts/flaky-radar-upload.sh
+radar-summary.md
+radar-comment.md
