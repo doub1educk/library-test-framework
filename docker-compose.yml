@@ -1,4 +1,40 @@
+# docker compose up -d                         — только инфраструктура для локальной разработки
+# docker compose --profile app up -d --build   — плюс сам Flaky Radar в контейнере
+#                                                (перед этим: mvn -pl flaky-radar -am package -DskipTests)
 services:
+  # ===== Flaky Radar =====
+  radar-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: flakyradar
+      POSTGRES_USER: flakyradar
+      POSTGRES_PASSWORD: flakyradar
+    ports:
+      - "5433:5432"
+    volumes:
+      - radar-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flakyradar"]
+      interval: 5s
+      retries: 10
+
+  flaky-radar:
+    profiles: ["app"]
+    build: ./flaky-radar
+    depends_on:
+      radar-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://radar-db:5432/flakyradar
+      FLAKY_RADAR_ADMIN_TOKEN: ${FLAKY_RADAR_ADMIN_TOKEN:-change-me}
+      FLAKY_RADAR_PUBLIC_URL: http://localhost:8080
+      FLAKY_RADAR_TELEGRAM_ENABLED: ${FLAKY_RADAR_TELEGRAM_ENABLED:-false}
+      FLAKY_RADAR_TELEGRAM_BOT_TOKEN: ${FLAKY_RADAR_TELEGRAM_BOT_TOKEN:-}
+      FLAKY_RADAR_TELEGRAM_CHAT_ID: ${FLAKY_RADAR_TELEGRAM_CHAT_ID:-}
+    ports:
+      - "8080:8080"
+
+  # ===== Демо-проект «Библиотека» =====
   postgres:
     image: postgres:17-alpine
     environment:
@@ -13,4 +49,7 @@ services:
     ports:
       - "8089:8080"
     volumes:
-      - ./wiremock:/home/wiremock
+      - ./library-demo/wiremock:/home/wiremock
+
+volumes:
+  radar-data:
