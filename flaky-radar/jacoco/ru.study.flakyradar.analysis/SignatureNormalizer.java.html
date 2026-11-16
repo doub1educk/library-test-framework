@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SignatureNormalizer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.analysis</a> &gt; <span class="el_source">SignatureNormalizer.java</span></div><h1>SignatureNormalizer.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.analysis;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.HexFormat;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+<span class="fc" id="L13">public final class SignatureNormalizer {</span>
+    static final int MAX_FRAMES = 3;
+    private static final int MAX_MESSAGE_LENGTH = 500;
+
+<span class="fc" id="L17">    private static final List&lt;Rule&gt; RULES = List.of(</span>
+            new Rule(&quot;\\u001B\\[[;\\d]*[A-Za-z]&quot;, &quot;&quot;),
+            new Rule(&quot;(?i)\\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\b&quot;, &quot;&lt;UUID&gt;&quot;),
+            new Rule(&quot;\\b\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}(:\\d{2}([.,]\\d+)?)?(Z|[+-]\\d{2}:?\\d{2})?&quot;, &quot;&lt;TS&gt;&quot;),
+            new Rule(&quot;\\b\\d{4}-\\d{2}-\\d{2}\\b&quot;, &quot;&lt;DATE&gt;&quot;),
+            new Rule(&quot;\\b\\d{1,2}:\\d{2}:\\d{2}([.,]\\d+)?\\b&quot;, &quot;&lt;TIME&gt;&quot;),
+            new Rule(&quot;(?i)\\b0x[0-9a-f]+\\b&quot;, &quot;&lt;HEX&gt;&quot;),
+            new Rule(&quot;@[0-9a-f]{5,}\\b&quot;, &quot;@&lt;HEX&gt;&quot;),
+            new Rule(&quot;(?i)\\b(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]|host\\.docker\\.internal):\\d{2,5}\\b&quot;, &quot;$1:&lt;PORT&gt;&quot;),
+            new Rule(&quot;(?i)(://[\\w.-]+):\\d{2,5}\\b&quot;, &quot;$1:&lt;PORT&gt;&quot;),
+            new Rule(&quot;\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b&quot;, &quot;&lt;IP&gt;&quot;),
+            new Rule(&quot;(?i)(/tmp/|/var/folders/|[a-z]:\\\\users\\\\[^\\\\\\s]+\\\\appdata\\\\local\\\\temp\\\\)\\S*&quot;, &quot;&lt;TMP&gt;&quot;),
+            new Rule(&quot;(?i)\\b\\d+([.,]\\d+)?\\s?(ms|milliseconds?|sec|seconds?|s)\\b&quot;, &quot;&lt;DUR&gt;&quot;),
+            new Rule(&quot;\\b\\d{2,}\\b&quot;, &quot;&lt;N&gt;&quot;),
+            new Rule(&quot;\\s+&quot;, &quot; &quot;));
+
+<span class="fc" id="L33">    private static final List&lt;String&gt; FRAMEWORK_FRAME_PREFIXES = List.of(</span>
+            &quot;java.&quot;, &quot;javax.&quot;, &quot;jdk.&quot;, &quot;sun.&quot;, &quot;com.sun.&quot;, &quot;kotlin.&quot;, &quot;scala.&quot;,
+            &quot;org.junit.&quot;, &quot;junit.&quot;, &quot;org.opentest4j.&quot;, &quot;org.assertj.&quot;, &quot;org.hamcrest.&quot;, &quot;org.mockito.&quot;,
+            &quot;org.springframework.&quot;, &quot;io.restassured.&quot;, &quot;org.apache.&quot;, &quot;org.codehaus.groovy.&quot;, &quot;groovy.&quot;,
+            &quot;org.gradle.&quot;, &quot;worker.org.gradle.&quot;, &quot;org.testng.&quot;, &quot;net.bytebuddy.&quot;, &quot;org.aspectj.&quot;, &quot;io.qameta.&quot;,
+            &quot;node:internal&quot;, &quot;node_modules&quot;, &quot;_pytest&quot;, &quot;pluggy&quot;, &quot;unittest&quot;);
+
+<span class="fc" id="L40">    private static final Pattern JAVA_FRAME = Pattern.compile(&quot;^\\s*at\\s+(.+?)\\s*$&quot;);</span>
+<span class="fc" id="L41">    private static final Pattern PYTHON_FRAME = Pattern.compile(&quot;^(\\S+\\.py):\\d+:?\\s.*$&quot;);</span>
+<span class="fc" id="L42">    private static final Pattern LINE_NUMBERS = Pattern.compile(&quot;(:\\d+)+(?=\\)?$)&quot;);</span>
+<span class="fc" id="L43">    private static final Pattern TYPE_AT_LINE_START = Pattern.compile(</span>
+            &quot;^\\s*(?:E\\s+)?((?:[A-Za-z_$][\\w$]*\\.)*[\\w$]*(?:Error|Exception|Failure|Throwable))(?::|$)&quot;);
+<span class="fc" id="L45">    private static final Pattern PYTEST_PREFIX = Pattern.compile(&quot;^\\s*E\\s+&quot;);</span>
+
+    public FailureFingerprint fingerprint(String type, String message, String stackTrace) {
+<span class="fc" id="L48">        return fingerprint(type, message, stackTrace, null);</span>
+    }
+
+    public FailureFingerprint fingerprint(String type, String message, String stackTrace, String testClass) {
+<span class="fc" id="L52">        String safeType = nullToEmpty(type).strip();</span>
+<span class="fc" id="L53">        String safeMessage = nullToEmpty(message);</span>
+<span class="fc" id="L54">        String safeStack = nullToEmpty(stackTrace);</span>
+
+        String exceptionType;
+        String messageSource;
+<span class="fc" id="L58">        String typeLine = firstLineWithType(safeStack);</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        if (isClassName(safeType)) {</span>
+<span class="fc" id="L60">            exceptionType = safeType;</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">            messageSource = safeMessage.isBlank() ? firstMeaningfulLine(safeStack) : safeMessage;</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        } else if (typeLine != null) {</span>
+<span class="fc" id="L63">            exceptionType = typeOf(typeLine);</span>
+<span class="fc" id="L64">            messageSource = PYTEST_PREFIX.matcher(typeLine).replaceFirst(&quot;&quot;);</span>
+        } else {
+<span class="fc" id="L66">            String messageType = typeOf(firstMeaningfulLine(safeMessage));</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">            exceptionType = messageType != null ? messageType : safeType;</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            messageSource = safeMessage.isBlank() ? firstMeaningfulLine(safeStack) : safeMessage;</span>
+        }
+
+<span class="fc" id="L71">        String messageLine = normalize(truncate(firstMeaningfulLine(messageSource)));</span>
+<span class="pc bpc" id="L72" title="1 of 4 branches missed.">        if (!exceptionType.isEmpty() &amp;&amp; messageLine.startsWith(exceptionType)) {</span>
+<span class="fc" id="L73">            messageLine = messageLine.substring(exceptionType.length()).replaceFirst(&quot;^:\\s*&quot;, &quot;&quot;);</span>
+        }
+<span class="fc" id="L75">        List&lt;String&gt; frames = significantFrames(safeStack, testClass);</span>
+
+<span class="fc" id="L77">        StringBuilder text = new StringBuilder(exceptionType).append('\n').append(messageLine);</span>
+<span class="fc" id="L78">        frames.forEach(frame -&gt; text.append(&quot;\n  at &quot;).append(frame));</span>
+<span class="fc" id="L79">        String normalizedText = text.toString().strip();</span>
+<span class="fc" id="L80">        return new FailureFingerprint(exceptionType, normalizedText, sha256(normalizedText));</span>
+    }
+
+    public String normalize(String text) {
+<span class="fc" id="L84">        return applyRules(text);</span>
+    }
+
+    private static String applyRules(String text) {
+<span class="fc" id="L88">        String result = text;</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">        for (Rule rule : RULES) {</span>
+<span class="fc" id="L90">            result = rule.pattern.matcher(result).replaceAll(rule.replacement);</span>
+<span class="fc" id="L91">        }</span>
+<span class="fc" id="L92">        return result.strip();</span>
+    }
+
+    static boolean isClassName(String type) {
+<span class="fc bfc" id="L96" title="All 2 branches covered.">        return !type.isBlank()</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">                &amp;&amp; !type.equals(type.toUpperCase(Locale.ROOT))</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">                &amp;&amp; !type.contains(&quot; &quot;)</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">                &amp;&amp; TYPE_AT_LINE_START.matcher(type).find();</span>
+    }
+
+    private static String firstLineWithType(String text) {
+<span class="fc bfc" id="L103" title="All 2 branches covered.">        for (String line : text.split(&quot;\\R&quot;)) {</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">            if (TYPE_AT_LINE_START.matcher(line).find()) {</span>
+<span class="fc" id="L105">                return line.strip();</span>
+            }
+        }
+<span class="fc" id="L108">        return null;</span>
+    }
+
+    private static String typeOf(String line) {
+<span class="fc" id="L112">        Matcher matcher = TYPE_AT_LINE_START.matcher(line);</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">        return matcher.find() ? matcher.group(1) : null;</span>
+    }
+
+    static List&lt;String&gt; significantFrames(String stackTrace, String testClass) {
+<span class="fc" id="L117">        List&lt;String&gt; frames = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        for (String line : stackTrace.split(&quot;\\R&quot;)) {</span>
+<span class="fc" id="L119">            String frame = extractFrame(line);</span>
+<span class="fc bfc" id="L120" title="All 6 branches covered.">            if (frame == null || isFrameworkFrame(frame) || isTestClassFrame(frame, testClass)) {</span>
+<span class="fc" id="L121">                continue;</span>
+            }
+<span class="fc" id="L123">            frames.add(applyRules(frame));</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">            if (frames.size() == MAX_FRAMES) {</span>
+<span class="fc" id="L125">                break;</span>
+            }
+        }
+<span class="fc" id="L128">        return frames;</span>
+    }
+
+    private static String extractFrame(String line) {
+<span class="fc" id="L132">        Matcher java = JAVA_FRAME.matcher(line);</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">        if (java.matches()) {</span>
+<span class="fc" id="L134">            String frame = java.group(1);</span>
+<span class="fc" id="L135">            frame = frame.replaceAll(&quot;:\\d+(?=\\))&quot;, &quot;&quot;);</span>
+<span class="fc" id="L136">            return LINE_NUMBERS.matcher(frame).replaceAll(&quot;&quot;);</span>
+        }
+<span class="fc" id="L138">        Matcher python = PYTHON_FRAME.matcher(line);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (python.matches()) {</span>
+<span class="fc" id="L140">            return python.group(1);</span>
+        }
+<span class="fc" id="L142">        return null;</span>
+    }
+
+    private static boolean isTestClassFrame(String frame, String testClass) {
+<span class="pc bpc" id="L146" title="1 of 4 branches missed.">        if (testClass == null || testClass.isBlank()) {</span>
+<span class="fc" id="L147">            return false;</span>
+        }
+<span class="fc bfc" id="L149" title="All 4 branches covered.">        return frame.startsWith(testClass + &quot;.&quot;) || frame.startsWith(testClass + &quot;$&quot;);</span>
+    }
+
+    private static boolean isFrameworkFrame(String frame) {
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">        String stripped = frame.startsWith(&quot;async &quot;) ? frame.substring(6) : frame;</span>
+<span class="fc bfc" id="L154" title="All 2 branches covered.">        for (String prefix : FRAMEWORK_FRAME_PREFIXES) {</span>
+<span class="pc bpc" id="L155" title="2 of 6 branches missed.">            if (stripped.startsWith(prefix) || stripped.contains(&quot;(&quot; + prefix) || stripped.contains(&quot;/&quot; + prefix)) {</span>
+<span class="fc" id="L156">                return true;</span>
+            }
+<span class="fc" id="L158">        }</span>
+<span class="fc" id="L159">        return false;</span>
+    }
+
+    private static String firstMeaningfulLine(String text) {
+<span class="fc bfc" id="L163" title="All 2 branches covered.">        for (String line : text.split(&quot;\\R&quot;)) {</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">            if (!line.isBlank()) {</span>
+<span class="fc" id="L165">                return line.strip();</span>
+            }
+        }
+<span class="fc" id="L168">        return &quot;&quot;;</span>
+    }
+
+    private static String truncate(String text) {
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">        return text.length() &lt;= MAX_MESSAGE_LENGTH ? text : text.substring(0, MAX_MESSAGE_LENGTH);</span>
+    }
+
+    private static String nullToEmpty(String value) {
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        return value == null ? &quot;&quot; : value;</span>
+    }
+
+    static String sha256(String text) {
+        try {
+<span class="fc" id="L181">            byte[] digest = MessageDigest.getInstance(&quot;SHA-256&quot;).digest(text.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L182">            return HexFormat.of().formatHex(digest);</span>
+<span class="nc" id="L183">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L184">            throw new IllegalStateException(&quot;SHA-256 обязателен в любой JVM&quot;, e);</span>
+        }
+    }
+
+<span class="fc" id="L188">    private record Rule(Pattern pattern, String replacement) {</span>
+        Rule(String regex, String replacement) {
+<span class="fc" id="L190">            this(Pattern.compile(regex), replacement);</span>
+<span class="fc" id="L191">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

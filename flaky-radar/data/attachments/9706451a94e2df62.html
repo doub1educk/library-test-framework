@@ -1,0 +1,87 @@
+<div>Status code 201 </div>
+
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;projectKey&quot;: &quot;proj-wjddemkr&quot;,
+    &quot;run&quot;: {
+        &quot;id&quot;: 2,
+        &quot;branch&quot;: &quot;main&quot;,
+        &quot;commitSha&quot;: &quot;ffa607c52fdf375d8446bd12476ece6d1d704139&quot;,
+        &quot;attempt&quot;: 1,
+        &quot;ciRunId&quot;: null,
+        &quot;buildUrl&quot;: null,
+        &quot;receivedAt&quot;: &quot;2026-11-16T18:24:59.973489958Z&quot;,
+        &quot;total&quot;: 2,
+        &quot;passed&quot;: 0,
+        &quot;failed&quot;: 2,
+        &quot;skipped&quot;: 0,
+        &quot;decision&quot;: &quot;FAIL&quot;
+    },
+    &quot;gate&quot;: {
+        &quot;runId&quot;: 2,
+        &quot;decision&quot;: &quot;FAIL&quot;,
+        &quot;blocking&quot;: [
+            {
+                &quot;testName&quot;: &quot;ru.demo.CheckoutTest.createsOrder&quot;,
+                &quot;status&quot;: &quot;FAILED&quot;,
+                &quot;verdict&quot;: &quot;NEW_FAILURE&quot;,
+                &quot;quarantined&quot;: false,
+                &quot;passedAfterRetry&quot;: false,
+                &quot;message&quot;: &quot;expected: &lt;201&gt; but was: &lt;500&gt;&quot;
+            }
+        ],
+        &quot;warnings&quot;: [
+            {
+                &quot;testName&quot;: &quot;ru.demo.CheckoutTest.refundsOrder&quot;,
+                &quot;status&quot;: &quot;FAILED&quot;,
+                &quot;verdict&quot;: &quot;NEW_FAILURE&quot;,
+                &quot;quarantined&quot;: true,
+                &quot;passedAfterRetry&quot;: false,
+                &quot;message&quot;: &quot;expected: &lt;REFUNDED&gt; but was: &lt;PENDING&gt;&quot;
+            }
+        ]
+    },
+    &quot;problems&quot;: [
+        {
+            &quot;testCaseId&quot;: 46,
+            &quot;testName&quot;: &quot;ru.demo.CheckoutTest.createsOrder&quot;,
+            &quot;status&quot;: &quot;FAILED&quot;,
+            &quot;durationMs&quot;: 100,
+            &quot;failedAttempts&quot;: 0,
+            &quot;verdict&quot;: &quot;NEW_FAILURE&quot;,
+            &quot;quarantined&quot;: false,
+            &quot;passedAfterRetry&quot;: false,
+            &quot;message&quot;: &quot;expected: &lt;201&gt; but was: &lt;500&gt;&quot;,
+            &quot;signatureId&quot;: 1
+        },
+        {
+            &quot;testCaseId&quot;: 47,
+            &quot;testName&quot;: &quot;ru.demo.CheckoutTest.refundsOrder&quot;,
+            &quot;status&quot;: &quot;FAILED&quot;,
+            &quot;durationMs&quot;: 50,
+            &quot;failedAttempts&quot;: 0,
+            &quot;verdict&quot;: &quot;NEW_FAILURE&quot;,
+            &quot;quarantined&quot;: true,
+            &quot;passedAfterRetry&quot;: false,
+            &quot;message&quot;: &quot;expected: &lt;REFUNDED&gt; but was: &lt;PENDING&gt;&quot;,
+            &quot;signatureId&quot;: 2
+        }
+    ],
+    &quot;dashboardUrl&quot;: &quot;http://radar.test/projects/proj-wjddemkr/runs/2&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Transfer-Encoding: chunked</div>
+        <div>Keep-Alive: timeout=60</div>
+        <div>Connection: keep-alive</div>
+        <div>Date: Mon, 16 Nov 2026 18:25:00 GMT</div>
+        <div>Location: http://localhost:34263/api/v1/projects/proj-wjddemkr/runs/2</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+

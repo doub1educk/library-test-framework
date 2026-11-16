@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestHistoryQueries.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.history</a> &gt; <span class="el_source">TestHistoryQueries.java</span></div><h1>TestHistoryQueries.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.history;
+
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.stereotype.Repository;
+import ru.study.flakyradar.analysis.HistoryPoint;
+import ru.study.flakyradar.report.TestStatus;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Repository
+public class TestHistoryQueries {
+    private static final int CHUNK = 1000;
+
+    private final JdbcClient jdbc;
+
+<span class="fc" id="L20">    public TestHistoryQueries(JdbcClient jdbc) {</span>
+<span class="fc" id="L21">        this.jdbc = jdbc;</span>
+<span class="fc" id="L22">    }</span>
+
+    public Map&lt;Long, List&lt;HistoryPoint&gt;&gt; lastResults(Collection&lt;Long&gt; testCaseIds, int window) {
+<span class="fc" id="L25">        Map&lt;Long, List&lt;HistoryPoint&gt;&gt; history = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L26">        List&lt;Long&gt; ids = List.copyOf(testCaseIds);</span>
+<span class="fc bfc" id="L27" title="All 2 branches covered.">        for (int from = 0; from &lt; ids.size(); from += CHUNK) {</span>
+<span class="fc" id="L28">            List&lt;Long&gt; chunk = ids.subList(from, Math.min(ids.size(), from + CHUNK));</span>
+<span class="fc" id="L29">            jdbc.sql(&quot;&quot;&quot;</span>
+                            select h.test_case_id, h.commit_sha, h.branch, h.status, h.failed_attempts
+                            from (select r.test_case_id, t.commit_sha, t.branch, r.status, r.failed_attempts, r.run_id,
+                                         row_number() over (partition by r.test_case_id order by r.run_id desc) as rn
+                                  from test_result r
+                                           join test_run t on t.id = r.run_id
+                                  where r.test_case_id in (:ids)) h
+                            where h.rn &lt;= :window
+                            order by h.test_case_id, h.run_id
+                            &quot;&quot;&quot;)
+<span class="fc" id="L39">                    .param(&quot;ids&quot;, chunk)</span>
+<span class="fc" id="L40">                    .param(&quot;window&quot;, window)</span>
+<span class="fc" id="L41">                    .query((rs, rowNum) -&gt; {</span>
+<span class="fc" id="L42">                        TestStatus status = TestStatus.valueOf(rs.getString(&quot;status&quot;));</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">                        HistoryPoint point = new HistoryPoint(rs.getString(&quot;commit_sha&quot;), rs.getString(&quot;branch&quot;),</span>
+<span class="fc bfc" id="L44" title="All 2 branches covered.">                                status, status == TestStatus.PASSED &amp;&amp; rs.getInt(&quot;failed_attempts&quot;) &gt; 0);</span>
+<span class="fc" id="L45">                        history.computeIfAbsent(rs.getLong(&quot;test_case_id&quot;), id -&gt; new ArrayList&lt;&gt;()).add(point);</span>
+<span class="fc" id="L46">                        return point;</span>
+                    })
+<span class="fc" id="L48">                    .list();</span>
+        }
+<span class="fc" id="L50">        return history;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RunController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.run</a> &gt; <span class="el_source">RunController.java</span></div><h1>RunController.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.run;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import ru.study.flakyradar.run.RunDtos.GateResponse;
+import ru.study.flakyradar.run.RunDtos.RunDetails;
+import ru.study.flakyradar.run.RunDtos.RunView;
+
+import java.util.List;
+
+@Tag(name = &quot;Прогоны&quot;)
+@RestController
+@RequestMapping(&quot;/api/v1/projects/{key}/runs&quot;)
+public class RunController {
+
+    static final String MARKDOWN = &quot;text/markdown;charset=UTF-8&quot;;
+
+    private final RunQueryService runQueryService;
+    private final SummaryRenderer summaryRenderer;
+
+<span class="fc" id="L26">    public RunController(RunQueryService runQueryService, SummaryRenderer summaryRenderer) {</span>
+<span class="fc" id="L27">        this.runQueryService = runQueryService;</span>
+<span class="fc" id="L28">        this.summaryRenderer = summaryRenderer;</span>
+<span class="fc" id="L29">    }</span>
+
+    @Operation(summary = &quot;Последние прогоны проекта&quot;)
+    @GetMapping
+    public List&lt;RunView&gt; list(@PathVariable String key,
+                              @RequestParam(required = false) String branch,
+                              @RequestParam(defaultValue = &quot;20&quot;) int limit) {
+<span class="fc" id="L36">        return runQueryService.list(key, branch, limit);</span>
+    }
+
+    @Operation(summary = &quot;Прогон: счётчики, решение gate, упавшие тесты с вердиктами&quot;)
+    @GetMapping(&quot;/{runId}&quot;)
+    public RunDetails details(@PathVariable String key, @PathVariable long runId) {
+<span class="nc" id="L42">        return runQueryService.details(key, runId);</span>
+    }
+
+    @Operation(summary = &quot;Решение для CI&quot;,
+            description = &quot;Всегда 200. CI проверяет поле decision: PASS и WARN пропускают сборку, FAIL блокирует.&quot;)
+    @GetMapping(&quot;/{runId}/gate&quot;)
+    public GateResponse gate(@PathVariable String key, @PathVariable long runId) {
+<span class="fc" id="L49">        return runQueryService.gate(key, runId);</span>
+    }
+
+    @Operation(summary = &quot;Сводка в markdown (для комментария в PR и Job Summary)&quot;)
+    @GetMapping(value = &quot;/{runId}/summary.md&quot;, produces = MARKDOWN)
+    public String summary(@PathVariable String key, @PathVariable long runId) {
+<span class="fc" id="L55">        return summaryRenderer.markdown(runQueryService.details(key, runId));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

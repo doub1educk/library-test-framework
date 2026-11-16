@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProjectDtos.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.project</a> &gt; <span class="el_source">ProjectDtos.java</span></div><h1>ProjectDtos.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.project;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+import java.time.Instant;
+
+public final class ProjectDtos {
+    private ProjectDtos() {
+    }
+
+<span class="fc" id="L13">    public record CreateProjectRequest(</span>
+            @NotBlank
+            @Pattern(regexp = &quot;[a-z0-9][a-z0-9-]{1,63}&quot;, message = &quot;ключ: латиница в нижнем регистре, цифры и дефис, 2-64 символа&quot;)
+            String key,
+            @NotBlank @Size(max = 255) String name) {
+    }
+
+<span class="fc" id="L20">    public record ProjectResponse(String key, String name, Instant createdAt) {</span>
+        static ProjectResponse from(Project project) {
+<span class="fc" id="L22">            return new ProjectResponse(project.getKey(), project.getName(), project.getCreatedAt());</span>
+        }
+    }
+
+<span class="fc" id="L26">    public record ProjectCredentials(String key, String name, String apiKey) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

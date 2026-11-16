@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>VerdictCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.analysis</a> &gt; <span class="el_source">VerdictCalculator.java</span></div><h1>VerdictCalculator.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.analysis;
+
+import ru.study.flakyradar.report.TestStatus;
+
+import java.util.List;
+
+public final class VerdictCalculator {
+    private final DetectionPolicy policy;
+
+<span class="fc" id="L10">    public VerdictCalculator(DetectionPolicy policy) {</span>
+<span class="fc" id="L11">        this.policy = policy;</span>
+<span class="fc" id="L12">    }</span>
+
+    public Verdict verdictForFailure(boolean knownFlaky, List&lt;HistoryPoint&gt; priorHistory, String branch, String commitSha) {
+<span class="fc bfc" id="L15" title="All 4 branches covered.">        if (knownFlaky || passedBeforeOnSameCommit(priorHistory, commitSha)) {</span>
+<span class="fc" id="L16">            return Verdict.KNOWN_FLAKY;</span>
+        }
+<span class="fc" id="L18">        int streak = trailingFailuresOnBranch(priorHistory, branch) + 1;</span>
+<span class="fc bfc" id="L19" title="All 2 branches covered.">        return streak &gt;= policy.brokenStreak() ? Verdict.LONG_BROKEN : Verdict.NEW_FAILURE;</span>
+    }
+
+    static boolean passedBeforeOnSameCommit(List&lt;HistoryPoint&gt; history, String commitSha) {
+<span class="fc" id="L23">        return history.stream()</span>
+<span class="pc bpc" id="L24" title="1 of 4 branches missed.">                .anyMatch(p -&gt; p.commitSha().equals(commitSha) &amp;&amp; p.status() == TestStatus.PASSED);</span>
+    }
+
+    static int trailingFailuresOnBranch(List&lt;HistoryPoint&gt; history, String branch) {
+<span class="fc" id="L28">        int streak = 0;</span>
+<span class="fc bfc" id="L29" title="All 2 branches covered.">        for (int i = history.size() - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L30">            HistoryPoint point = history.get(i);</span>
+<span class="fc bfc" id="L31" title="All 4 branches covered.">            if (!point.branch().equals(branch) || point.status() == TestStatus.SKIPPED) {</span>
+<span class="fc" id="L32">                continue;</span>
+            }
+<span class="fc bfc" id="L34" title="All 2 branches covered.">            if (!point.status().isFailure()) {</span>
+<span class="fc" id="L35">                break;</span>
+            }
+<span class="fc" id="L37">            streak++;</span>
+        }
+<span class="fc" id="L39">        return streak;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

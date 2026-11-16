@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IngestService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.ingest</a> &gt; <span class="el_source">IngestService.java</span></div><h1>IngestService.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.ingest;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.InputStreamSource;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.study.flakyradar.analysis.DetectionPolicy;
+import ru.study.flakyradar.analysis.FailureFingerprint;
+import ru.study.flakyradar.analysis.FlakinessAssessment;
+import ru.study.flakyradar.analysis.FlakinessDetector;
+import ru.study.flakyradar.analysis.GateEvaluator;
+import ru.study.flakyradar.analysis.HistoryPoint;
+import ru.study.flakyradar.analysis.SignatureNormalizer;
+import ru.study.flakyradar.analysis.Verdict;
+import ru.study.flakyradar.analysis.VerdictCalculator;
+import ru.study.flakyradar.config.FlakyRadarProperties;
+import ru.study.flakyradar.history.FailureSignature;
+import ru.study.flakyradar.history.FailureSignatureRepository;
+import ru.study.flakyradar.history.TestCase;
+import ru.study.flakyradar.history.TestCaseRepository;
+import ru.study.flakyradar.history.TestHistoryQueries;
+import ru.study.flakyradar.history.TestResult;
+import ru.study.flakyradar.history.TestResultRepository;
+import ru.study.flakyradar.history.TestRun;
+import ru.study.flakyradar.history.TestRunRepository;
+import ru.study.flakyradar.ingest.IngestExceptions.EmptyReportException;
+import ru.study.flakyradar.ingest.IngestExceptions.NoReportsException;
+import ru.study.flakyradar.project.Project;
+import ru.study.flakyradar.project.ProjectService;
+import ru.study.flakyradar.quarantine.QuarantineService;
+import ru.study.flakyradar.report.JUnitXmlParser;
+import ru.study.flakyradar.report.ParsedFailure;
+import ru.study.flakyradar.report.ParsedReport;
+import ru.study.flakyradar.report.ParsedTestCase;
+import ru.study.flakyradar.report.TestStatus;
+import ru.study.flakyradar.run.RunDtos.RunDetails;
+import ru.study.flakyradar.run.RunQueryService;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+@Service
+@Transactional(readOnly = true)
+public class IngestService {
+<span class="fc" id="L55">    private static final Logger log = LoggerFactory.getLogger(IngestService.class);</span>
+
+    private final ProjectService projectService;
+    private final QuarantineService quarantineService;
+    private final RunQueryService runQueryService;
+    private final TestRunRepository runRepository;
+    private final TestCaseRepository testCaseRepository;
+    private final TestResultRepository resultRepository;
+    private final FailureSignatureRepository signatureRepository;
+    private final TestHistoryQueries historyQueries;
+    private final JUnitXmlParser parser;
+    private final SignatureNormalizer normalizer;
+    private final FlakinessDetector flakinessDetector;
+    private final VerdictCalculator verdictCalculator;
+    private final GateEvaluator gateEvaluator;
+    private final DetectionPolicy policy;
+    private final FlakyRadarProperties properties;
+    private final ApplicationEventPublisher events;
+    private final Clock clock;
+
+    @SuppressWarnings(&quot;java:S107&quot;)
+    public IngestService(ProjectService projectService, QuarantineService quarantineService,
+                         RunQueryService runQueryService, TestRunRepository runRepository,
+                         TestCaseRepository testCaseRepository, TestResultRepository resultRepository,
+                         FailureSignatureRepository signatureRepository, TestHistoryQueries historyQueries,
+                         JUnitXmlParser parser, SignatureNormalizer normalizer, FlakinessDetector flakinessDetector,
+                         VerdictCalculator verdictCalculator, GateEvaluator gateEvaluator, DetectionPolicy policy,
+<span class="fc" id="L82">                         FlakyRadarProperties properties, ApplicationEventPublisher events, Clock clock) {</span>
+<span class="fc" id="L83">        this.projectService = projectService;</span>
+<span class="fc" id="L84">        this.quarantineService = quarantineService;</span>
+<span class="fc" id="L85">        this.runQueryService = runQueryService;</span>
+<span class="fc" id="L86">        this.runRepository = runRepository;</span>
+<span class="fc" id="L87">        this.testCaseRepository = testCaseRepository;</span>
+<span class="fc" id="L88">        this.resultRepository = resultRepository;</span>
+<span class="fc" id="L89">        this.signatureRepository = signatureRepository;</span>
+<span class="fc" id="L90">        this.historyQueries = historyQueries;</span>
+<span class="fc" id="L91">        this.parser = parser;</span>
+<span class="fc" id="L92">        this.normalizer = normalizer;</span>
+<span class="fc" id="L93">        this.flakinessDetector = flakinessDetector;</span>
+<span class="fc" id="L94">        this.verdictCalculator = verdictCalculator;</span>
+<span class="fc" id="L95">        this.gateEvaluator = gateEvaluator;</span>
+<span class="fc" id="L96">        this.policy = policy;</span>
+<span class="fc" id="L97">        this.properties = properties;</span>
+<span class="fc" id="L98">        this.events = events;</span>
+<span class="fc" id="L99">        this.clock = clock;</span>
+<span class="fc" id="L100">    }</span>
+
+<span class="fc" id="L102">    public record IngestResult(RunDetails details, boolean duplicate) {</span>
+    }
+
+    @Transactional
+    public IngestResult ingest(String projectKey, String apiKey, IngestRequest request,
+                               List&lt;? extends InputStreamSource&gt; reports) {
+<span class="fc" id="L108">        Project project = projectService.authenticate(projectKey, apiKey);</span>
+
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (request.ciRunId() != null) {</span>
+<span class="fc" id="L111">            var existing = runRepository.findByProjectIdAndCiRunIdAndAttempt(</span>
+<span class="fc" id="L112">                    project.getId(), request.ciRunId(), request.attempt());</span>
+<span class="fc bfc" id="L113" title="All 2 branches covered.">            if (existing.isPresent()) {</span>
+<span class="fc" id="L114">                log.info(&quot;Повторная загрузка прогона ciRunId={} attempt={} проекта {}: возвращаем существующий&quot;,</span>
+<span class="fc" id="L115">                        request.ciRunId(), request.attempt(), projectKey);</span>
+<span class="fc" id="L116">                return new IngestResult(runQueryService.details(project, existing.get()), true);</span>
+            }
+        }
+
+<span class="fc" id="L120">        ParsedReport report = parseAll(reports);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">        if (report.total() == 0) {</span>
+<span class="fc" id="L122">            throw new EmptyReportException();</span>
+        }
+
+<span class="fc" id="L125">        Instant now = clock.instant();</span>
+<span class="fc" id="L126">        TestRun run = new TestRun(project.getId(), request.branch().strip(), request.commit().strip(),</span>
+<span class="fc" id="L127">                request.attempt(), request.ciRunId(), request.buildUrl(), now);</span>
+<span class="fc" id="L128">        run.setCounts(report.total(), report.count(TestStatus.PASSED), report.failedCount(),</span>
+<span class="fc" id="L129">                report.count(TestStatus.SKIPPED));</span>
+<span class="fc" id="L130">        runRepository.save(run);</span>
+
+<span class="fc" id="L132">        Map&lt;String, TestCase&gt; testCases = resolveTestCases(project, report, now);</span>
+<span class="fc" id="L133">        List&lt;Long&gt; testCaseIds = testCases.values().stream().map(TestCase::getId).toList();</span>
+<span class="fc" id="L134">        Map&lt;Long, List&lt;HistoryPoint&gt;&gt; history = historyQueries.lastResults(testCaseIds, policy.window());</span>
+<span class="fc" id="L135">        Set&lt;Long&gt; quarantined = quarantineService.activeTestCaseIds(project.getId(), testCaseIds);</span>
+<span class="fc" id="L136">        SignatureCache signatures = new SignatureCache(project.getId(), now);</span>
+
+<span class="fc" id="L138">        List&lt;TestResult&gt; results = new ArrayList&lt;&gt;(report.total());</span>
+<span class="fc" id="L139">        List&lt;GateEvaluator.Outcome&gt; outcomes = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L140" title="All 2 branches covered.">        for (ParsedTestCase parsed : report.testCases()) {</span>
+<span class="fc" id="L141">            TestCase testCase = testCases.get(parsed.fullName());</span>
+<span class="fc" id="L142">            List&lt;HistoryPoint&gt; prior = history.getOrDefault(testCase.getId(), List.of());</span>
+<span class="fc" id="L143">            boolean inQuarantine = quarantined.contains(testCase.getId());</span>
+
+<span class="fc bfc" id="L145" title="All 2 branches covered.">            Verdict verdict = parsed.status().isFailure()</span>
+<span class="fc" id="L146">                    ? verdictCalculator.verdictForFailure(testCase.isFlaky(), prior, run.getBranch(), run.getCommitSha())</span>
+<span class="fc" id="L147">                    : null;</span>
+<span class="pc bpc" id="L148" title="1 of 6 branches missed.">            FailureSignature signature = parsed.failure() != null &amp;&amp; (parsed.status().isFailure() || parsed.passedAfterRetry())</span>
+<span class="fc" id="L149">                    ? signatures.resolve(parsed.failure(), parsed.suite())</span>
+<span class="fc" id="L150">                    : null;</span>
+
+<span class="fc" id="L152">            results.add(new TestResult(run, testCase, parsed.status(), parsed.durationMs(), parsed.failedAttempts(),</span>
+<span class="fc" id="L153">                    message(parsed.failure()), signature, verdict, inQuarantine));</span>
+<span class="fc" id="L154">            outcomes.add(new GateEvaluator.Outcome(verdict, inQuarantine, parsed.passedAfterRetry()));</span>
+
+<span class="fc" id="L156">            List&lt;HistoryPoint&gt; withCurrent = new ArrayList&lt;&gt;(prior);</span>
+<span class="fc" id="L157">            withCurrent.add(new HistoryPoint(run.getCommitSha(), run.getBranch(), parsed.status(), parsed.passedAfterRetry()));</span>
+<span class="fc" id="L158">            FlakinessAssessment assessment = flakinessDetector.assess(withCurrent);</span>
+<span class="fc" id="L159">            testCase.recordResult(parsed.status(), assessment.flaky(), assessment.flips(), now);</span>
+<span class="fc" id="L160">        }</span>
+<span class="fc" id="L161">        resultRepository.saveAll(results);</span>
+<span class="fc" id="L162">        run.setDecision(gateEvaluator.decide(outcomes));</span>
+
+<span class="fc" id="L164">        log.info(&quot;Принят прогон {} проекта {}: {} тестов, упало {}, решение {}&quot;,</span>
+<span class="fc" id="L165">                run.getId(), projectKey, run.getTotal(), run.getFailed(), run.getDecision());</span>
+<span class="fc" id="L166">        events.publishEvent(new RunIngestedEvent(project.getKey(), run.getId()));</span>
+<span class="fc" id="L167">        resultRepository.flush();</span>
+<span class="fc" id="L168">        return new IngestResult(runQueryService.details(project, run), false);</span>
+    }
+
+    private ParsedReport parseAll(List&lt;? extends InputStreamSource&gt; reports) {
+<span class="pc bpc" id="L172" title="1 of 4 branches missed.">        if (reports == null || reports.isEmpty()) {</span>
+<span class="fc" id="L173">            throw new NoReportsException();</span>
+        }
+<span class="fc" id="L175">        List&lt;ParsedReport&gt; parsed = new ArrayList&lt;&gt;(reports.size());</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">        for (InputStreamSource source : reports) {</span>
+<span class="fc" id="L177">            try (InputStream input = source.getInputStream()) {</span>
+<span class="fc" id="L178">                parsed.add(parser.parse(input));</span>
+<span class="nc" id="L179">            } catch (IOException e) {</span>
+<span class="nc" id="L180">                throw new UncheckedIOException(&quot;Не удалось прочитать файл отчёта&quot;, e);</span>
+<span class="fc" id="L181">            }</span>
+<span class="fc" id="L182">        }</span>
+<span class="fc" id="L183">        return ParsedReport.merge(parsed);</span>
+    }
+
+    private Map&lt;String, TestCase&gt; resolveTestCases(Project project, ParsedReport report, Instant now) {
+<span class="fc" id="L187">        List&lt;String&gt; names = report.testCases().stream().map(ParsedTestCase::fullName).toList();</span>
+<span class="fc" id="L188">        Map&lt;String, TestCase&gt; byName = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        for (int from = 0; from &lt; names.size(); from += 1000) {</span>
+<span class="fc" id="L190">            testCaseRepository.findByProjectIdAndFullNameIn(project.getId(), names.subList(from, Math.min(names.size(), from + 1000)))</span>
+<span class="fc" id="L191">                    .forEach(tc -&gt; byName.put(tc.getFullName(), tc));</span>
+        }
+<span class="fc" id="L193">        List&lt;TestCase&gt; created = report.testCases().stream()</span>
+<span class="fc bfc" id="L194" title="All 2 branches covered.">                .filter(tc -&gt; !byName.containsKey(tc.fullName()))</span>
+<span class="fc" id="L195">                .map(tc -&gt; new TestCase(project.getId(), tc.suite(), tc.name(), tc.fullName(), now))</span>
+<span class="fc" id="L196">                .toList();</span>
+<span class="fc" id="L197">        testCaseRepository.saveAll(created).forEach(tc -&gt; byName.put(tc.getFullName(), tc));</span>
+<span class="fc" id="L198">        return byName;</span>
+    }
+
+    private String message(ParsedFailure failure) {
+<span class="fc bfc" id="L202" title="All 2 branches covered.">        if (failure == null) {</span>
+<span class="fc" id="L203">            return null;</span>
+        }
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">        String text = failure.message().isBlank() ? failure.stackTrace() : failure.message();</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">        if (text.isBlank()) {</span>
+<span class="nc" id="L207">            text = failure.type();</span>
+        }
+<span class="fc" id="L209">        int max = properties.ingest().maxMessageLength();</span>
+<span class="pc bpc" id="L210" title="1 of 2 branches missed.">        return text.length() &lt;= max ? text : text.substring(0, max) + &quot;…&quot;;</span>
+    }
+
+    private final class SignatureCache {
+        private final Long projectId;
+        private final Instant now;
+<span class="fc" id="L216">        private final Map&lt;String, FailureSignature&gt; byHash = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L218">        SignatureCache(Long projectId, Instant now) {</span>
+<span class="fc" id="L219">            this.projectId = projectId;</span>
+<span class="fc" id="L220">            this.now = now;</span>
+<span class="fc" id="L221">        }</span>
+
+        FailureSignature resolve(ParsedFailure failure, String testClass) {
+<span class="fc" id="L224">            FailureFingerprint fingerprint = normalizer.fingerprint(</span>
+<span class="fc" id="L225">                    failure.type(), failure.message(), failure.stackTrace(), testClass);</span>
+<span class="fc" id="L226">            FailureSignature signature = byHash.computeIfAbsent(fingerprint.hash(), hash -&gt; load(fingerprint, failure));</span>
+<span class="fc" id="L227">            signature.recordOccurrence(now);</span>
+<span class="fc" id="L228">            return signature;</span>
+        }
+
+        private FailureSignature load(FailureFingerprint fingerprint, ParsedFailure failure) {
+<span class="fc" id="L232">            var found = signatureRepository.findByProjectIdAndHash(projectId, fingerprint.hash());</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">            if (found.isPresent()) {</span>
+<span class="fc" id="L234">                return found.get();</span>
+            }
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">            String sample = failure.message().isBlank() ? failure.stackTrace() : failure.message();</span>
+<span class="fc" id="L237">            return signatureRepository.save(new FailureSignature(projectId, fingerprint.hash(),</span>
+<span class="fc" id="L238">                    emptyToNull(fingerprint.exceptionType()), fingerprint.normalizedText(), truncate(sample), now));</span>
+        }
+
+        private String truncate(String text) {
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">            return text.length() &lt;= 2000 ? text : text.substring(0, 2000) + &quot;…&quot;;</span>
+        }
+
+        private String emptyToNull(String value) {
+<span class="pc bpc" id="L246" title="2 of 4 branches missed.">            return value == null || value.isEmpty() ? null : value;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

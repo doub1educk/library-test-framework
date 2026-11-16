@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProjectService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.project</a> &gt; <span class="el_source">ProjectService.java</span></div><h1>ProjectService.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.project;
+
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.study.flakyradar.config.FlakyRadarProperties;
+import ru.study.flakyradar.project.ProjectDtos.CreateProjectRequest;
+import ru.study.flakyradar.project.ProjectDtos.ProjectCredentials;
+import ru.study.flakyradar.project.ProjectDtos.ProjectResponse;
+import ru.study.flakyradar.project.ProjectExceptions.InvalidAdminTokenException;
+import ru.study.flakyradar.project.ProjectExceptions.InvalidApiKeyException;
+import ru.study.flakyradar.project.ProjectExceptions.ProjectAlreadyExistsException;
+import ru.study.flakyradar.project.ProjectExceptions.ProjectNotFoundException;
+
+import java.time.Clock;
+import java.util.List;
+
+@Service
+@Transactional(readOnly = true)
+public class ProjectService {
+    private final ProjectRepository repository;
+    private final FlakyRadarProperties properties;
+    private final Clock clock;
+
+<span class="fc" id="L25">    public ProjectService(ProjectRepository repository, FlakyRadarProperties properties, Clock clock) {</span>
+<span class="fc" id="L26">        this.repository = repository;</span>
+<span class="fc" id="L27">        this.properties = properties;</span>
+<span class="fc" id="L28">        this.clock = clock;</span>
+<span class="fc" id="L29">    }</span>
+
+    @Transactional
+    public ProjectCredentials create(CreateProjectRequest request, String adminToken) {
+<span class="fc" id="L33">        requireAdmin(adminToken);</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">        if (repository.existsByKey(request.key())) {</span>
+<span class="fc" id="L35">            throw new ProjectAlreadyExistsException(request.key());</span>
+        }
+<span class="fc" id="L37">        String apiKey = ApiKeys.generate();</span>
+<span class="fc" id="L38">        Project project = repository.save(new Project(request.key(), request.name().strip(), ApiKeys.hash(apiKey), clock.instant()));</span>
+<span class="fc" id="L39">        return new ProjectCredentials(project.getKey(), project.getName(), apiKey);</span>
+    }
+
+    @Transactional
+    public ProjectCredentials rotateApiKey(String key, String adminToken) {
+<span class="fc" id="L44">        requireAdmin(adminToken);</span>
+<span class="fc" id="L45">        Project project = require(key);</span>
+<span class="fc" id="L46">        String apiKey = ApiKeys.generate();</span>
+<span class="fc" id="L47">        project.setApiKeyHash(ApiKeys.hash(apiKey));</span>
+<span class="fc" id="L48">        return new ProjectCredentials(project.getKey(), project.getName(), apiKey);</span>
+    }
+
+    public List&lt;ProjectResponse&gt; findAll() {
+<span class="fc" id="L52">        return repository.findAll(Sort.by(&quot;key&quot;)).stream().map(ProjectResponse::from).toList();</span>
+    }
+
+    public ProjectResponse get(String key) {
+<span class="fc" id="L56">        return ProjectResponse.from(require(key));</span>
+    }
+
+    public Project require(String key) {
+<span class="fc" id="L60">        return repository.findByKey(key).orElseThrow(() -&gt; new ProjectNotFoundException(key));</span>
+    }
+
+    public Project authenticate(String key, String apiKey) {
+<span class="fc" id="L64">        Project project = require(key);</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">        if (!ApiKeys.matches(apiKey, project.getApiKeyHash())) {</span>
+<span class="fc" id="L66">            throw new InvalidApiKeyException();</span>
+        }
+<span class="fc" id="L68">        return project;</span>
+    }
+
+    private void requireAdmin(String adminToken) {
+<span class="fc bfc" id="L72" title="All 2 branches covered.">        if (!ApiKeys.secretEquals(adminToken, properties.adminToken())) {</span>
+<span class="fc" id="L73">            throw new InvalidAdminTokenException();</span>
+        }
+<span class="fc" id="L75">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

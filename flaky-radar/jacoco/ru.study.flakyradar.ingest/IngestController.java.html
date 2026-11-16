@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IngestController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.ingest</a> &gt; <span class="el_source">IngestController.java</span></div><h1>IngestController.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.ingest;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ru.study.flakyradar.ingest.IngestService.IngestResult;
+import ru.study.flakyradar.run.RunDtos.RunDetails;
+
+import java.util.List;
+
+@Tag(name = &quot;Приём отчётов&quot;)
+@RestController
+@RequestMapping(&quot;/api/v1/projects/{key}/runs&quot;)
+public class IngestController {
+
+    private final IngestService ingestService;
+
+<span class="fc" id="L31">    public IngestController(IngestService ingestService) {</span>
+<span class="fc" id="L32">        this.ingestService = ingestService;</span>
+<span class="fc" id="L33">    }</span>
+
+    @Operation(summary = &quot;Загрузить отчёт JUnit XML&quot;,
+            description = &quot;&quot;&quot;
+                    multipart/form-data: один или несколько файлов в поле report и метаданные прогона.
+                    Ответ 201 с деталями прогона и решением gate. Повторная загрузка с теми же ciRunId и attempt
+                    возвращает уже сохранённый прогон с кодом 200.
+                    Пример: curl -H &quot;X-Api-Key: $KEY&quot; -F report=@TEST-a.xml -F branch=main -F commit=$SHA -F attempt=1 ...&quot;&quot;&quot;,
+            security = @SecurityRequirement(name = &quot;apiKey&quot;))
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity&lt;RunDetails&gt; upload(
+            @PathVariable String key,
+            @RequestHeader(name = &quot;X-Api-Key&quot;, required = false) String apiKey,
+            @RequestPart(name = &quot;report&quot;, required = false) List&lt;MultipartFile&gt; reports,
+            @Valid @ModelAttribute IngestRequest request) {
+<span class="fc bfc" id="L48" title="All 2 branches covered.">        IngestResult result = ingestService.ingest(key, apiKey, request, reports == null ? List.of() : reports);</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">        if (result.duplicate()) {</span>
+<span class="fc" id="L50">            return ResponseEntity.ok(result.details());</span>
+        }
+<span class="fc" id="L52">        return ResponseEntity.status(HttpStatus.CREATED)</span>
+<span class="fc" id="L53">                .location(ServletUriComponentsBuilder.fromCurrentRequest()</span>
+<span class="fc" id="L54">                        .path(&quot;/{id}&quot;).buildAndExpand(result.details().run().id()).toUri())</span>
+<span class="fc" id="L55">                .body(result.details());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

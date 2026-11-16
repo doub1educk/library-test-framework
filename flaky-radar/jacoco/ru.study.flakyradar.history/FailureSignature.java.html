@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FailureSignature.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.history</a> &gt; <span class="el_source">FailureSignature.java</span></div><h1>FailureSignature.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.history;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = &quot;failure_signature&quot;)
+public class FailureSignature {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = &quot;project_id&quot;, nullable = false, updatable = false)
+    private Long projectId;
+
+    @Column(nullable = false, length = 64, updatable = false)
+    private String hash;
+
+    @Column(name = &quot;exception_type&quot;, length = 512)
+    private String exceptionType;
+
+    @Column(name = &quot;normalized_text&quot;, nullable = false, columnDefinition = &quot;text&quot;)
+    private String normalizedText;
+
+    @Column(name = &quot;sample_message&quot;, columnDefinition = &quot;text&quot;)
+    private String sampleMessage;
+
+    @Column(nullable = false)
+    private int occurrences;
+
+    @Column(name = &quot;first_seen&quot;, nullable = false, updatable = false)
+    private Instant firstSeen;
+
+    @Column(name = &quot;last_seen&quot;, nullable = false)
+    private Instant lastSeen;
+
+<span class="fc" id="L43">    protected FailureSignature() {</span>
+<span class="fc" id="L44">    }</span>
+
+    public FailureSignature(Long projectId, String hash, String exceptionType, String normalizedText,
+<span class="fc" id="L47">                            String sampleMessage, Instant seenAt) {</span>
+<span class="fc" id="L48">        this.projectId = projectId;</span>
+<span class="fc" id="L49">        this.hash = hash;</span>
+<span class="fc" id="L50">        this.exceptionType = exceptionType;</span>
+<span class="fc" id="L51">        this.normalizedText = normalizedText;</span>
+<span class="fc" id="L52">        this.sampleMessage = sampleMessage;</span>
+<span class="fc" id="L53">        this.firstSeen = seenAt;</span>
+<span class="fc" id="L54">        this.lastSeen = seenAt;</span>
+<span class="fc" id="L55">    }</span>
+
+    public void recordOccurrence(Instant seenAt) {
+<span class="fc" id="L58">        occurrences++;</span>
+<span class="fc" id="L59">        lastSeen = seenAt;</span>
+<span class="fc" id="L60">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L63">        return id;</span>
+    }
+
+    public Long getProjectId() {
+<span class="nc" id="L67">        return projectId;</span>
+    }
+
+    public String getHash() {
+<span class="fc" id="L71">        return hash;</span>
+    }
+
+    public String getExceptionType() {
+<span class="fc" id="L75">        return exceptionType;</span>
+    }
+
+    public String getNormalizedText() {
+<span class="fc" id="L79">        return normalizedText;</span>
+    }
+
+    public String getSampleMessage() {
+<span class="fc" id="L83">        return sampleMessage;</span>
+    }
+
+    public int getOccurrences() {
+<span class="fc" id="L87">        return occurrences;</span>
+    }
+
+    public Instant getFirstSeen() {
+<span class="fc" id="L91">        return firstSeen;</span>
+    }
+
+    public Instant getLastSeen() {
+<span class="fc" id="L95">        return lastSeen;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

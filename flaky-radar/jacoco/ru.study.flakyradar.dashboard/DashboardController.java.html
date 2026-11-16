@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DashboardController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.dashboard</a> &gt; <span class="el_source">DashboardController.java</span></div><h1>DashboardController.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.dashboard;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import ru.study.flakyradar.history.TestCaseExceptions.SignatureNotFoundException;
+import ru.study.flakyradar.history.TestCaseExceptions.TestCaseNotFoundException;
+import ru.study.flakyradar.project.ProjectDtos.ProjectResponse;
+import ru.study.flakyradar.project.ProjectExceptions.ProjectNotFoundException;
+import ru.study.flakyradar.quarantine.QuarantineService;
+import ru.study.flakyradar.run.RunDtos.RunView;
+import ru.study.flakyradar.run.RunExceptions.RunNotFoundException;
+import ru.study.flakyradar.run.RunQueryService;
+import ru.study.flakyradar.run.SummaryRenderer;
+import ru.study.flakyradar.project.ProjectService;
+import ru.study.flakyradar.testcase.TestCaseQueryService;
+
+import java.util.List;
+
+@Controller
+public class DashboardController {
+    private final ProjectService projectService;
+    private final RunQueryService runQueryService;
+    private final TestCaseQueryService testCaseQueryService;
+    private final QuarantineService quarantineService;
+    private final SummaryRenderer summaryRenderer;
+
+    public DashboardController(ProjectService projectService, RunQueryService runQueryService,
+                               TestCaseQueryService testCaseQueryService, QuarantineService quarantineService,
+<span class="fc" id="L35">                               SummaryRenderer summaryRenderer) {</span>
+<span class="fc" id="L36">        this.projectService = projectService;</span>
+<span class="fc" id="L37">        this.runQueryService = runQueryService;</span>
+<span class="fc" id="L38">        this.testCaseQueryService = testCaseQueryService;</span>
+<span class="fc" id="L39">        this.quarantineService = quarantineService;</span>
+<span class="fc" id="L40">        this.summaryRenderer = summaryRenderer;</span>
+<span class="fc" id="L41">    }</span>
+
+<span class="fc" id="L43">    public record ProjectRow(ProjectResponse project, RunView lastRun, int flakyTests) {</span>
+    }
+
+    @GetMapping(&quot;/&quot;)
+    public String index(Model model) {
+<span class="fc" id="L48">        List&lt;ProjectRow&gt; rows = projectService.findAll().stream()</span>
+<span class="fc" id="L49">                .map(p -&gt; new ProjectRow(p,</span>
+<span class="fc" id="L50">                        runQueryService.list(p.key(), null, 1).stream().findFirst().orElse(null),</span>
+<span class="fc" id="L51">                        testCaseQueryService.flaky(p.key()).size()))</span>
+<span class="fc" id="L52">                .toList();</span>
+<span class="fc" id="L53">        model.addAttribute(&quot;projects&quot;, rows);</span>
+<span class="fc" id="L54">        return &quot;index&quot;;</span>
+    }
+
+    @GetMapping(&quot;/projects/{key}&quot;)
+    public String project(@PathVariable String key, @RequestParam(required = false) String branch, Model model) {
+<span class="fc" id="L59">        model.addAttribute(&quot;project&quot;, projectService.get(key));</span>
+<span class="fc" id="L60">        model.addAttribute(&quot;branch&quot;, branch);</span>
+<span class="fc" id="L61">        model.addAttribute(&quot;runs&quot;, runQueryService.list(key, branch, 30));</span>
+<span class="fc" id="L62">        model.addAttribute(&quot;flaky&quot;, testCaseQueryService.flaky(key));</span>
+<span class="fc" id="L63">        model.addAttribute(&quot;signatures&quot;, testCaseQueryService.signatures(key, 10));</span>
+<span class="fc" id="L64">        model.addAttribute(&quot;quarantine&quot;, quarantineService.findActive(key));</span>
+<span class="fc" id="L65">        return &quot;project&quot;;</span>
+    }
+
+    @GetMapping(&quot;/projects/{key}/runs/{runId}&quot;)
+    public String run(@PathVariable String key, @PathVariable long runId, Model model) {
+<span class="fc" id="L70">        var details = runQueryService.details(key, runId);</span>
+<span class="fc" id="L71">        model.addAttribute(&quot;project&quot;, projectService.get(key));</span>
+<span class="fc" id="L72">        model.addAttribute(&quot;details&quot;, details);</span>
+<span class="fc" id="L73">        model.addAttribute(&quot;markdown&quot;, summaryRenderer.markdown(details));</span>
+<span class="fc" id="L74">        return &quot;run&quot;;</span>
+    }
+
+    @GetMapping(&quot;/projects/{key}/tests/{testId}&quot;)
+    public String test(@PathVariable String key, @PathVariable long testId, Model model) {
+<span class="fc" id="L79">        model.addAttribute(&quot;project&quot;, projectService.get(key));</span>
+<span class="fc" id="L80">        var history = testCaseQueryService.history(key, testId);</span>
+<span class="fc" id="L81">        model.addAttribute(&quot;history&quot;, history);</span>
+<span class="fc" id="L82">        model.addAttribute(&quot;timeline&quot;, history.results().reversed());</span>
+<span class="fc" id="L83">        return &quot;test&quot;;</span>
+    }
+
+    @GetMapping(&quot;/projects/{key}/signatures/{signatureId}&quot;)
+    public String signature(@PathVariable String key, @PathVariable long signatureId, Model model) {
+<span class="fc" id="L88">        model.addAttribute(&quot;project&quot;, projectService.get(key));</span>
+<span class="fc" id="L89">        model.addAttribute(&quot;details&quot;, testCaseQueryService.signature(key, signatureId));</span>
+<span class="fc" id="L90">        return &quot;signature&quot;;</span>
+    }
+
+    @ExceptionHandler({ProjectNotFoundException.class, RunNotFoundException.class, TestCaseNotFoundException.class,
+            SignatureNotFoundException.class})
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String notFound(RuntimeException e, Model model) {
+<span class="fc" id="L97">        model.addAttribute(&quot;message&quot;, e.getMessage());</span>
+<span class="fc" id="L98">        return &quot;not-found&quot;;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestCaseDtos.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.testcase</a> &gt; <span class="el_source">TestCaseDtos.java</span></div><h1>TestCaseDtos.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.testcase;
+
+import ru.study.flakyradar.analysis.Verdict;
+import ru.study.flakyradar.history.FailureSignature;
+import ru.study.flakyradar.history.TestCase;
+import ru.study.flakyradar.history.TestResult;
+import ru.study.flakyradar.report.TestStatus;
+
+import java.time.Instant;
+import java.util.List;
+
+public final class TestCaseDtos {
+    private TestCaseDtos() {
+    }
+
+<span class="fc" id="L16">    public record TestCaseView(</span>
+            Long id,
+            String fullName,
+            String suite,
+            String name,
+            boolean flaky,
+            int flipCount,
+            TestStatus lastStatus,
+            Instant firstSeen,
+            Instant lastSeen,
+            boolean quarantined) {
+        static TestCaseView from(TestCase tc, boolean quarantined) {
+<span class="fc" id="L28">            return new TestCaseView(tc.getId(), tc.getFullName(), tc.getSuite(), tc.getName(), tc.isFlaky(),</span>
+<span class="fc" id="L29">                    tc.getFlipCount(), tc.getLastStatus(), tc.getFirstSeen(), tc.getLastSeen(), quarantined);</span>
+        }
+    }
+
+<span class="fc" id="L33">    public record HistoryEntry(</span>
+            Long runId,
+            String branch,
+            String commitSha,
+            int attempt,
+            Instant receivedAt,
+            TestStatus status,
+            long durationMs,
+            int failedAttempts,
+            Verdict verdict,
+            String message,
+            Long signatureId) {
+        static HistoryEntry from(TestResult r) {
+<span class="fc" id="L46">            return new HistoryEntry(r.getRun().getId(), r.getRun().getBranch(), r.getRun().getCommitSha(),</span>
+<span class="fc" id="L47">                    r.getRun().getAttempt(), r.getRun().getReceivedAt(), r.getStatus(), r.getDurationMs(),</span>
+<span class="fc" id="L48">                    r.getFailedAttempts(), r.getVerdict(), r.getMessage(),</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">                    r.getSignature() == null ? null : r.getSignature().getId());</span>
+        }
+
+        public boolean passedAfterRetry() {
+<span class="pc bpc" id="L53" title="1 of 4 branches missed.">            return status == TestStatus.PASSED &amp;&amp; failedAttempts &gt; 0;</span>
+        }
+
+        public String shortSha() {
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            return commitSha.length() &gt; 7 ? commitSha.substring(0, 7) : commitSha;</span>
+        }
+    }
+
+<span class="fc" id="L61">    public record TestHistoryView(TestCaseView test, List&lt;HistoryEntry&gt; results) {</span>
+    }
+
+<span class="fc" id="L64">    public record SignatureView(</span>
+            Long id,
+            String hash,
+            String exceptionType,
+            String normalizedText,
+            String sampleMessage,
+            int occurrences,
+            long affectedTests,
+            Instant firstSeen,
+            Instant lastSeen) {
+        static SignatureView from(FailureSignature s, long affectedTests) {
+<span class="fc" id="L75">            return new SignatureView(s.getId(), s.getHash(), s.getExceptionType(), s.getNormalizedText(),</span>
+<span class="fc" id="L76">                    s.getSampleMessage(), s.getOccurrences(), affectedTests, s.getFirstSeen(), s.getLastSeen());</span>
+        }
+
+        public String shortHash() {
+<span class="fc" id="L80">            return hash.substring(0, 10);</span>
+        }
+    }
+
+<span class="fc" id="L84">    public record SignatureOccurrence(Long runId, String branch, String commitSha, Instant receivedAt,</span>
+                                      Long testCaseId, String testName, TestStatus status) {
+        static SignatureOccurrence from(TestResult r) {
+<span class="fc" id="L87">            return new SignatureOccurrence(r.getRun().getId(), r.getRun().getBranch(), r.getRun().getCommitSha(),</span>
+<span class="fc" id="L88">                    r.getRun().getReceivedAt(), r.getTestCase().getId(), r.getTestCase().getFullName(), r.getStatus());</span>
+        }
+    }
+
+<span class="fc" id="L92">    public record SignatureDetails(SignatureView signature, List&lt;SignatureOccurrence&gt; occurrences) {</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

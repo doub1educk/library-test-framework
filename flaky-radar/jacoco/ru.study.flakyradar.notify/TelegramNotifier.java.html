@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TelegramNotifier.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.notify</a> &gt; <span class="el_source">TelegramNotifier.java</span></div><h1>TelegramNotifier.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.notify;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import ru.study.flakyradar.analysis.GateDecision;
+import ru.study.flakyradar.ingest.RunIngestedEvent;
+import ru.study.flakyradar.run.RunDtos.RunDetails;
+import ru.study.flakyradar.run.RunQueryService;
+import ru.study.flakyradar.run.SummaryRenderer;
+
+import java.net.http.HttpClient;
+import java.util.Map;
+
+@Component
+public class TelegramNotifier {
+<span class="fc" id="L23">    private static final Logger log = LoggerFactory.getLogger(TelegramNotifier.class);</span>
+
+    private final TelegramProperties properties;
+    private final RunQueryService runQueryService;
+    private final SummaryRenderer renderer;
+    private final RestClient restClient;
+
+    public TelegramNotifier(TelegramProperties properties, RunQueryService runQueryService, SummaryRenderer renderer,
+<span class="fc" id="L31">                            RestClient.Builder builder) {</span>
+<span class="fc" id="L32">        this.properties = properties;</span>
+<span class="fc" id="L33">        this.runQueryService = runQueryService;</span>
+<span class="fc" id="L34">        this.renderer = renderer;</span>
+<span class="fc" id="L35">        HttpClient httpClient = HttpClient.newBuilder()</span>
+<span class="fc" id="L36">                .version(HttpClient.Version.HTTP_1_1)</span>
+<span class="fc" id="L37">                .connectTimeout(properties.timeout())</span>
+<span class="fc" id="L38">                .build();</span>
+<span class="fc" id="L39">        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(httpClient);</span>
+<span class="fc" id="L40">        requestFactory.setReadTimeout(properties.timeout());</span>
+<span class="fc" id="L41">        this.restClient = builder.baseUrl(properties.baseUrl()).requestFactory(requestFactory).build();</span>
+<span class="fc" id="L42">    }</span>
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onRunIngested(RunIngestedEvent event) {
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        if (!properties.configured()) {</span>
+<span class="nc" id="L47">            return;</span>
+        }
+        try {
+<span class="fc" id="L50">            RunDetails details = runQueryService.details(event.projectKey(), event.runId());</span>
+<span class="pc bpc" id="L51" title="1 of 4 branches missed.">            if (details.gate().decision() == GateDecision.PASS &amp;&amp; !properties.notifyOnPass()) {</span>
+<span class="fc" id="L52">                return;</span>
+            }
+<span class="fc" id="L54">            send(renderer.plainText(details));</span>
+<span class="fc" id="L55">        } catch (RuntimeException e) {</span>
+<span class="fc" id="L56">            log.warn(&quot;Не удалось отправить сводку прогона {} в Telegram: {}&quot;, event.runId(), e.getMessage());</span>
+<span class="fc" id="L57">        }</span>
+<span class="fc" id="L58">    }</span>
+
+    void send(String text) {
+        try {
+<span class="fc" id="L62">            restClient.post()</span>
+<span class="fc" id="L63">                    .uri(&quot;/bot&quot; + properties.botToken() + &quot;/sendMessage&quot;)</span>
+<span class="fc" id="L64">                    .contentType(MediaType.APPLICATION_JSON)</span>
+<span class="fc" id="L65">                    .body(Map.of(&quot;chat_id&quot;, properties.chatId(), &quot;text&quot;, text, &quot;disable_web_page_preview&quot;, true))</span>
+<span class="fc" id="L66">                    .retrieve()</span>
+<span class="fc" id="L67">                    .toBodilessEntity();</span>
+<span class="fc" id="L68">        } catch (RestClientException e) {</span>
+<span class="fc" id="L69">            throw new IllegalStateException(&quot;Telegram Bot API недоступен: &quot; + e.getMessage(), e);</span>
+<span class="fc" id="L70">        }</span>
+<span class="fc" id="L71">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

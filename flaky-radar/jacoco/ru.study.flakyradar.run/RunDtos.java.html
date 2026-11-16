@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RunDtos.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.run</a> &gt; <span class="el_source">RunDtos.java</span></div><h1>RunDtos.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.run;
+
+import ru.study.flakyradar.analysis.GateDecision;
+import ru.study.flakyradar.analysis.Verdict;
+import ru.study.flakyradar.history.TestResult;
+import ru.study.flakyradar.history.TestRun;
+import ru.study.flakyradar.report.TestStatus;
+
+import java.time.Instant;
+import java.util.List;
+
+public final class RunDtos {
+    private RunDtos() {
+    }
+
+<span class="fc" id="L16">    public record RunView(</span>
+            Long id,
+            String branch,
+            String commitSha,
+            int attempt,
+            String ciRunId,
+            String buildUrl,
+            Instant receivedAt,
+            int total,
+            int passed,
+            int failed,
+            int skipped,
+            GateDecision decision) {
+        public static RunView from(TestRun run) {
+<span class="fc" id="L30">            return new RunView(run.getId(), run.getBranch(), run.getCommitSha(), run.getAttempt(), run.getCiRunId(),</span>
+<span class="fc" id="L31">                    run.getBuildUrl(), run.getReceivedAt(), run.getTotal(), run.getPassed(), run.getFailed(),</span>
+<span class="fc" id="L32">                    run.getSkipped(), run.getDecision());</span>
+        }
+
+        public String shortSha() {
+<span class="pc bpc" id="L36" title="1 of 2 branches missed.">            return commitSha.length() &gt; 7 ? commitSha.substring(0, 7) : commitSha;</span>
+        }
+    }
+
+<span class="fc" id="L40">    public record ResultView(</span>
+            Long testCaseId,
+            String testName,
+            TestStatus status,
+            long durationMs,
+            int failedAttempts,
+            Verdict verdict,
+            boolean quarantined,
+            boolean passedAfterRetry,
+            String message,
+            Long signatureId) {
+        static ResultView from(TestResult r, boolean quarantinedNow) {
+<span class="fc" id="L52">            return new ResultView(r.getTestCase().getId(), r.getTestCase().getFullName(), r.getStatus(),</span>
+<span class="fc" id="L53">                    r.getDurationMs(), r.getFailedAttempts(), r.getVerdict(), quarantinedNow, r.passedAfterRetry(),</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">                    r.getMessage(), r.getSignature() == null ? null : r.getSignature().getId());</span>
+        }
+    }
+
+<span class="fc" id="L58">    public record GateItem(</span>
+            String testName,
+            TestStatus status,
+            Verdict verdict,
+            boolean quarantined,
+            boolean passedAfterRetry,
+            String message) {
+        static GateItem from(ResultView r) {
+<span class="fc" id="L66">            return new GateItem(r.testName(), r.status(), r.verdict(), r.quarantined(), r.passedAfterRetry(), r.message());</span>
+        }
+    }
+
+<span class="fc" id="L70">    public record GateResponse(Long runId, GateDecision decision, List&lt;GateItem&gt; blocking, List&lt;GateItem&gt; warnings) {</span>
+    }
+
+<span class="fc" id="L73">    public record RunDetails(</span>
+            String projectKey,
+            RunView run,
+            GateResponse gate,
+            List&lt;ResultView&gt; problems,
+            String dashboardUrl) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,68 @@
+<div>Status code 201 </div>
+
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;projectKey&quot;: &quot;proj-bfidlwlm&quot;,
+    &quot;run&quot;: {
+        &quot;id&quot;: 2,
+        &quot;branch&quot;: &quot;main&quot;,
+        &quot;commitSha&quot;: &quot;7b2492f6a93a356f497c9f1daea850dcb9a5596f&quot;,
+        &quot;attempt&quot;: 2,
+        &quot;ciRunId&quot;: null,
+        &quot;buildUrl&quot;: null,
+        &quot;receivedAt&quot;: &quot;2026-11-16T18:24:57.398582314Z&quot;,
+        &quot;total&quot;: 2,
+        &quot;passed&quot;: 1,
+        &quot;failed&quot;: 1,
+        &quot;skipped&quot;: 0,
+        &quot;decision&quot;: &quot;WARN&quot;
+    },
+    &quot;gate&quot;: {
+        &quot;runId&quot;: 2,
+        &quot;decision&quot;: &quot;WARN&quot;,
+        &quot;blocking&quot;: [
+            
+        ],
+        &quot;warnings&quot;: [
+            {
+                &quot;testName&quot;: &quot;ru.demo.CheckoutTest.paysWithCard&quot;,
+                &quot;status&quot;: &quot;FAILED&quot;,
+                &quot;verdict&quot;: &quot;KNOWN_FLAKY&quot;,
+                &quot;quarantined&quot;: false,
+                &quot;passedAfterRetry&quot;: false,
+                &quot;message&quot;: &quot;expected: &lt;200&gt; but was: &lt;502&gt;&quot;
+            }
+        ]
+    },
+    &quot;problems&quot;: [
+        {
+            &quot;testCaseId&quot;: 27,
+            &quot;testName&quot;: &quot;ru.demo.CheckoutTest.paysWithCard&quot;,
+            &quot;status&quot;: &quot;FAILED&quot;,
+            &quot;durationMs&quot;: 50,
+            &quot;failedAttempts&quot;: 0,
+            &quot;verdict&quot;: &quot;KNOWN_FLAKY&quot;,
+            &quot;quarantined&quot;: false,
+            &quot;passedAfterRetry&quot;: false,
+            &quot;message&quot;: &quot;expected: &lt;200&gt; but was: &lt;502&gt;&quot;,
+            &quot;signatureId&quot;: 1
+        }
+    ],
+    &quot;dashboardUrl&quot;: &quot;http://radar.test/projects/proj-bfidlwlm/runs/2&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Transfer-Encoding: chunked</div>
+        <div>Keep-Alive: timeout=60</div>
+        <div>Connection: keep-alive</div>
+        <div>Date: Mon, 16 Nov 2026 18:24:57 GMT</div>
+        <div>Location: http://localhost:34263/api/v1/projects/proj-bfidlwlm/runs/2</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+

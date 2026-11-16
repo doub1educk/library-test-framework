@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RunQueryService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.run</a> &gt; <span class="el_source">RunQueryService.java</span></div><h1>RunQueryService.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.run;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.study.flakyradar.analysis.GateDecision;
+import ru.study.flakyradar.analysis.GateEvaluator;
+import ru.study.flakyradar.config.FlakyRadarProperties;
+import ru.study.flakyradar.history.TestResult;
+import ru.study.flakyradar.history.TestResultRepository;
+import ru.study.flakyradar.history.TestRun;
+import ru.study.flakyradar.history.TestRunRepository;
+import ru.study.flakyradar.project.Project;
+import ru.study.flakyradar.project.ProjectService;
+import ru.study.flakyradar.quarantine.QuarantineService;
+import ru.study.flakyradar.run.RunDtos.GateItem;
+import ru.study.flakyradar.run.RunDtos.GateResponse;
+import ru.study.flakyradar.run.RunDtos.ResultView;
+import ru.study.flakyradar.run.RunDtos.RunDetails;
+import ru.study.flakyradar.run.RunDtos.RunView;
+import ru.study.flakyradar.run.RunExceptions.RunNotFoundException;
+
+import java.util.List;
+import java.util.Set;
+
+@Service
+@Transactional(readOnly = true)
+public class RunQueryService {
+    static final int MAX_LIMIT = 200;
+
+    private final TestRunRepository runRepository;
+    private final TestResultRepository resultRepository;
+    private final ProjectService projectService;
+    private final QuarantineService quarantineService;
+    private final GateEvaluator gateEvaluator;
+    private final FlakyRadarProperties properties;
+
+    public RunQueryService(TestRunRepository runRepository, TestResultRepository resultRepository,
+                           ProjectService projectService, QuarantineService quarantineService,
+<span class="fc" id="L40">                           GateEvaluator gateEvaluator, FlakyRadarProperties properties) {</span>
+<span class="fc" id="L41">        this.runRepository = runRepository;</span>
+<span class="fc" id="L42">        this.resultRepository = resultRepository;</span>
+<span class="fc" id="L43">        this.projectService = projectService;</span>
+<span class="fc" id="L44">        this.quarantineService = quarantineService;</span>
+<span class="fc" id="L45">        this.gateEvaluator = gateEvaluator;</span>
+<span class="fc" id="L46">        this.properties = properties;</span>
+<span class="fc" id="L47">    }</span>
+
+    public List&lt;RunView&gt; list(String projectKey, String branch, int limit) {
+<span class="fc" id="L50">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L51">        PageRequest page = PageRequest.of(0, Math.clamp(limit, 1, MAX_LIMIT));</span>
+<span class="pc bpc" id="L52" title="1 of 4 branches missed.">        List&lt;TestRun&gt; runs = branch == null || branch.isBlank()</span>
+<span class="fc" id="L53">                ? runRepository.findByProjectIdOrderByIdDesc(project.getId(), page)</span>
+<span class="fc" id="L54">                : runRepository.findByProjectIdAndBranchOrderByIdDesc(project.getId(), branch, page);</span>
+<span class="fc" id="L55">        return runs.stream().map(RunView::from).toList();</span>
+    }
+
+    public RunDetails details(String projectKey, long runId) {
+<span class="fc" id="L59">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L60">        TestRun run = runRepository.findByIdAndProjectId(runId, project.getId())</span>
+<span class="fc" id="L61">                .orElseThrow(() -&gt; new RunNotFoundException(runId));</span>
+<span class="fc" id="L62">        return details(project, run);</span>
+    }
+
+    public GateResponse gate(String projectKey, long runId) {
+<span class="fc" id="L66">        return details(projectKey, runId).gate();</span>
+    }
+
+    public RunDetails details(Project project, TestRun run) {
+<span class="fc" id="L70">        List&lt;TestResult&gt; problems = resultRepository.findProblemsByRunId(run.getId());</span>
+<span class="fc" id="L71">        Set&lt;Long&gt; quarantined = quarantineService.activeTestCaseIds(project.getId(),</span>
+<span class="fc" id="L72">                problems.stream().map(r -&gt; r.getTestCase().getId()).toList());</span>
+
+<span class="fc" id="L74">        List&lt;ResultView&gt; views = problems.stream()</span>
+<span class="fc" id="L75">                .map(r -&gt; ResultView.from(r, quarantined.contains(r.getTestCase().getId())))</span>
+<span class="fc" id="L76">                .toList();</span>
+<span class="fc" id="L77">        GateDecision decision = gateEvaluator.decide(problems.stream()</span>
+<span class="fc" id="L78">                .map(r -&gt; r.outcome(quarantined.contains(r.getTestCase().getId())))</span>
+<span class="fc" id="L79">                .toList());</span>
+
+<span class="fc" id="L81">        List&lt;GateItem&gt; blocking = views.stream()</span>
+<span class="fc" id="L82">                .filter(v -&gt; GateEvaluator.isBlocking(toOutcome(v)))</span>
+<span class="fc" id="L83">                .map(GateItem::from)</span>
+<span class="fc" id="L84">                .toList();</span>
+<span class="fc" id="L85">        List&lt;GateItem&gt; warnings = views.stream()</span>
+<span class="fc" id="L86">                .filter(v -&gt; GateEvaluator.isWarning(toOutcome(v)))</span>
+<span class="fc" id="L87">                .map(GateItem::from)</span>
+<span class="fc" id="L88">                .toList();</span>
+
+<span class="fc" id="L90">        String dashboardUrl = properties.baseUrl() + &quot;/projects/&quot; + project.getKey() + &quot;/runs/&quot; + run.getId();</span>
+<span class="fc" id="L91">        return new RunDetails(project.getKey(), RunView.from(run),</span>
+<span class="fc" id="L92">                new GateResponse(run.getId(), decision, blocking, warnings), views, dashboardUrl);</span>
+    }
+
+    private static GateEvaluator.Outcome toOutcome(ResultView view) {
+<span class="fc" id="L96">        return new GateEvaluator.Outcome(view.verdict(), view.quarantined(), view.passedAfterRetry());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

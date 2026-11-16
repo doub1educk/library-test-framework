@@ -1,34 +1,7 @@
-<!DOCTYPE html>
-<html dir="ltr" lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Allure Report</title>
-    <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" type="text/css" href="styles.css">
-    <link rel="stylesheet" type="text/css" href="plugin/screen-diff/styles.css">
-</head>
-<body>
-    <div id="alert"></div>
-    <div id="content">
-        <span class="spinner">
-            <span class="spinner__circle"></span>
-        </span>
-    </div>
-    <div id="popup"></div>
-    <script src="app.js"></script>
-    <script src="plugin/behaviors/index.js"></script>
-    <script src="plugin/packages/index.js"></script>
-    <script src="plugin/screen-diff/index.js"></script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FVWC4GKEYS"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-FVWC4GKEYS', {
-          'allureVersion': '2.30.0',
-          'reportUuid': '3a4c8cc4-5ea0-4077-8b4b-ac49aacc33e4',
-          'single_file': false
-        });
-    </script>
-</body>
-</html>
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Flaky Radar · отчёты</title>
+<style>body{font:16px system-ui;max-width:640px;margin:48px auto;padding:0 16px}li{margin:8px 0}</style></head>
+<body><h1>Flaky Radar · отчёты тестов</h1><ul>
+<li><a href="flaky-radar/">Flaky Radar: Allure-отчёт</a> · <a href="flaky-radar/jacoco/">покрытие</a></li>
+<li><a href="library-demo/">Библиотека (демо): Allure-отчёт</a> · <a href="library-demo/jacoco/">покрытие</a></li>
+</ul></body></html>

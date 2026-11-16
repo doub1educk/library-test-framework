@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FlakyRadarProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.config</a> &gt; <span class="el_source">FlakyRadarProperties.java</span></div><h1>FlakyRadarProperties.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.config;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+import ru.study.flakyradar.analysis.DetectionPolicy;
+
+@Validated
+@ConfigurationProperties(&quot;flaky-radar&quot;)
+<span class="fc" id="L13">public record FlakyRadarProperties(</span>
+        @NotBlank String adminToken,
+        @NotBlank String publicUrl,
+        @Valid @NotNull Detection detection,
+        @Valid @NotNull Ingest ingest) {
+<span class="fc" id="L18">    public record Detection(@Min(2) int window, @Min(2) int minRuns, @Min(1) int minFlips, @Min(2) int brokenStreak) {</span>
+        public DetectionPolicy toPolicy() {
+<span class="fc" id="L20">            return new DetectionPolicy(window, minRuns, minFlips, brokenStreak);</span>
+        }
+    }
+
+<span class="fc" id="L24">    public record Ingest(@Min(100) int maxMessageLength) {</span>
+    }
+
+    public String baseUrl() {
+<span class="pc bpc" id="L28" title="1 of 2 branches missed.">        return publicUrl.endsWith(&quot;/&quot;) ? publicUrl.substring(0, publicUrl.length() - 1) : publicUrl;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

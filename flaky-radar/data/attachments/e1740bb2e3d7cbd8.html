@@ -1,0 +1,32 @@
+<div>POST to http://localhost:34263/api/v1/projects/proj-qqyiwsbo/quarantine</div>
+
+    <h4>Body</h4>
+    <div>
+    <pre class="preformated-text">
+{
+    &quot;testName&quot;: &quot;ru.demo.CheckoutTest.refundsOrder&quot;,
+    &quot;reason&quot;: &quot;на сутки&quot;,
+    &quot;createdBy&quot;: &quot;qa&quot;,
+    &quot;expiresAt&quot;: 1794939898.946529654
+}    </pre>
+    </div>
+
+    <h4>Headers</h4>
+    <div>
+            <div>Accept: */*</div>
+            <div>X-Api-Key: frk_q95RciZL431qpPBia7M-fTES-7uKFSFw</div>
+            <div>Content-Type: application/json</div>
+    </div>
+
+
+
+    <h4>Curl</h4>
+    <div>
+        curl -v -X POST &#39;http://localhost:34263/api/v1/projects/proj-qqyiwsbo/quarantine&#39; -H &#39;Accept: */*&#39; -H &#39;X-Api-Key: frk_q95RciZL431qpPBia7M-fTES-7uKFSFw&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;testName&quot;: &quot;ru.demo.CheckoutTest.refundsOrder&quot;,
+    &quot;reason&quot;: &quot;на сутки&quot;,
+    &quot;createdBy&quot;: &quot;qa&quot;,
+    &quot;expiresAt&quot;: 1794939898.946529654
+}&#39;
+    </div>
+

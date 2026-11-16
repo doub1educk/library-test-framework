@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FlakinessDetector.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.analysis</a> &gt; <span class="el_source">FlakinessDetector.java</span></div><h1>FlakinessDetector.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.analysis;
+
+import ru.study.flakyradar.report.TestStatus;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public final class FlakinessDetector {
+    private final DetectionPolicy policy;
+
+<span class="fc" id="L12">    public FlakinessDetector(DetectionPolicy policy) {</span>
+<span class="fc" id="L13">        this.policy = policy;</span>
+<span class="fc" id="L14">    }</span>
+
+    public FlakinessAssessment assess(List&lt;HistoryPoint&gt; history) {
+<span class="fc" id="L17">        List&lt;HistoryPoint&gt; sample = lastExecuted(history);</span>
+<span class="fc" id="L18">        int flips = countFlips(sample);</span>
+
+<span class="fc bfc" id="L20" title="All 2 branches covered.">        if (sample.stream().anyMatch(HistoryPoint::passedAfterRetry)) {</span>
+<span class="fc" id="L21">            return FlakinessAssessment.flaky(FlakinessReason.PASSED_AFTER_RETRY, flips, sample.size());</span>
+        }
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (hasMixedOutcomeOnSameCommit(sample)) {</span>
+<span class="fc" id="L24">            return FlakinessAssessment.flaky(FlakinessReason.SAME_COMMIT_MIXED, flips, sample.size());</span>
+        }
+<span class="fc bfc" id="L26" title="All 4 branches covered.">        if (sample.size() &gt;= policy.minRuns() &amp;&amp; flips &gt;= policy.minFlips()) {</span>
+<span class="fc" id="L27">            return FlakinessAssessment.flaky(FlakinessReason.FREQUENT_FLIPS, flips, sample.size());</span>
+        }
+<span class="fc" id="L29">        return FlakinessAssessment.stable(flips, sample.size());</span>
+    }
+
+    private List&lt;HistoryPoint&gt; lastExecuted(List&lt;HistoryPoint&gt; history) {
+<span class="fc" id="L33">        List&lt;HistoryPoint&gt; executed = history.stream()</span>
+<span class="fc bfc" id="L34" title="All 2 branches covered.">                .filter(p -&gt; p.status() != TestStatus.SKIPPED)</span>
+<span class="fc" id="L35">                .toList();</span>
+<span class="fc" id="L36">        int from = Math.max(0, executed.size() - policy.window());</span>
+<span class="fc" id="L37">        return executed.subList(from, executed.size());</span>
+    }
+
+    static int countFlips(List&lt;HistoryPoint&gt; sample) {
+<span class="fc" id="L41">        int flips = 0;</span>
+<span class="fc bfc" id="L42" title="All 2 branches covered.">        for (int i = 1; i &lt; sample.size(); i++) {</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">            if (sample.get(i).status().isFailure() != sample.get(i - 1).status().isFailure()) {</span>
+<span class="fc" id="L44">                flips++;</span>
+            }
+        }
+<span class="fc" id="L47">        return flips;</span>
+    }
+
+    static boolean hasMixedOutcomeOnSameCommit(List&lt;HistoryPoint&gt; sample) {
+<span class="fc" id="L51">        Map&lt;String, Integer&gt; outcomes = new HashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">        for (HistoryPoint point : sample) {</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">            int bit = point.status().isFailure() ? 2 : 1;</span>
+<span class="fc" id="L54">            int merged = outcomes.merge(point.commitSha(), bit, (a, b) -&gt; a | b);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">            if (merged == 3) {</span>
+<span class="fc" id="L56">                return true;</span>
+            }
+<span class="fc" id="L58">        }</span>
+<span class="fc" id="L59">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

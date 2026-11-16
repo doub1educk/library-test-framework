@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TelegramProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.notify</a> &gt; <span class="el_source">TelegramProperties.java</span></div><h1>TelegramProperties.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.notify;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
+
+@ConfigurationProperties(&quot;flaky-radar.telegram&quot;)
+public record TelegramProperties(boolean enabled, String baseUrl, String botToken, String chatId, Duration timeout,
+                                 boolean notifyOnPass) {
+<span class="fc" id="L10">    public TelegramProperties {</span>
+<span class="pc bpc" id="L11" title="2 of 4 branches missed.">        baseUrl = baseUrl == null || baseUrl.isBlank() ? &quot;https://api.telegram.org&quot; : baseUrl;</span>
+<span class="pc bpc" id="L12" title="1 of 2 branches missed.">        timeout = timeout == null ? Duration.ofSeconds(5) : timeout;</span>
+<span class="fc" id="L13">    }</span>
+
+    public boolean configured() {
+<span class="pc bpc" id="L16" title="5 of 10 branches missed.">        return enabled &amp;&amp; botToken != null &amp;&amp; !botToken.isBlank() &amp;&amp; chatId != null &amp;&amp; !chatId.isBlank();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TestCaseQueryService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">flaky-radar</a> &gt; <a href="index.source.html" class="el_package">ru.study.flakyradar.testcase</a> &gt; <span class="el_source">TestCaseQueryService.java</span></div><h1>TestCaseQueryService.java</h1><pre class="source lang-java linenums">package ru.study.flakyradar.testcase;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.study.flakyradar.analysis.DetectionPolicy;
+import ru.study.flakyradar.history.FailureSignature;
+import ru.study.flakyradar.history.FailureSignatureRepository;
+import ru.study.flakyradar.history.TestCase;
+import ru.study.flakyradar.history.TestCaseRepository;
+import ru.study.flakyradar.history.TestResultRepository;
+import ru.study.flakyradar.project.Project;
+import ru.study.flakyradar.project.ProjectService;
+import ru.study.flakyradar.quarantine.QuarantineService;
+import ru.study.flakyradar.testcase.TestCaseDtos.HistoryEntry;
+import ru.study.flakyradar.testcase.TestCaseDtos.SignatureDetails;
+import ru.study.flakyradar.testcase.TestCaseDtos.SignatureOccurrence;
+import ru.study.flakyradar.testcase.TestCaseDtos.SignatureView;
+import ru.study.flakyradar.testcase.TestCaseDtos.TestCaseView;
+import ru.study.flakyradar.testcase.TestCaseDtos.TestHistoryView;
+import ru.study.flakyradar.history.TestCaseExceptions.SignatureNotFoundException;
+import ru.study.flakyradar.history.TestCaseExceptions.TestCaseNotFoundException;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional(readOnly = true)
+public class TestCaseQueryService {
+    private static final int MAX_LIMIT = 500;
+
+    private final ProjectService projectService;
+    private final TestCaseRepository testCaseRepository;
+    private final TestResultRepository resultRepository;
+    private final FailureSignatureRepository signatureRepository;
+    private final QuarantineService quarantineService;
+    private final DetectionPolicy policy;
+
+    public TestCaseQueryService(ProjectService projectService, TestCaseRepository testCaseRepository,
+                                TestResultRepository resultRepository, FailureSignatureRepository signatureRepository,
+<span class="fc" id="L43">                                QuarantineService quarantineService, DetectionPolicy policy) {</span>
+<span class="fc" id="L44">        this.projectService = projectService;</span>
+<span class="fc" id="L45">        this.testCaseRepository = testCaseRepository;</span>
+<span class="fc" id="L46">        this.resultRepository = resultRepository;</span>
+<span class="fc" id="L47">        this.signatureRepository = signatureRepository;</span>
+<span class="fc" id="L48">        this.quarantineService = quarantineService;</span>
+<span class="fc" id="L49">        this.policy = policy;</span>
+<span class="fc" id="L50">    }</span>
+
+    public List&lt;TestCaseView&gt; flaky(String projectKey) {
+<span class="fc" id="L53">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L54">        return withQuarantine(project, testCaseRepository.findByProjectIdAndFlakyTrueOrderByFlipCountDescFullNameAsc(project.getId()));</span>
+    }
+
+    public List&lt;TestCaseView&gt; all(String projectKey, int limit) {
+<span class="fc" id="L58">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L59">        return withQuarantine(project, testCaseRepository.findByProjectIdOrderByFullNameAsc(</span>
+<span class="fc" id="L60">                project.getId(), PageRequest.of(0, Math.clamp(limit, 1, MAX_LIMIT))));</span>
+    }
+
+    public TestHistoryView history(String projectKey, long testCaseId) {
+<span class="fc" id="L64">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L65">        TestCase testCase = testCaseRepository.findByIdAndProjectId(testCaseId, project.getId())</span>
+<span class="pc" id="L66">                .orElseThrow(() -&gt; new TestCaseNotFoundException(testCaseId));</span>
+<span class="fc" id="L67">        List&lt;HistoryEntry&gt; results = resultRepository.findHistory(testCaseId, PageRequest.of(0, policy.window())).stream()</span>
+<span class="fc" id="L68">                .map(HistoryEntry::from)</span>
+<span class="fc" id="L69">                .toList();</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        boolean quarantined = !quarantineService.activeTestCaseIds(project.getId(), List.of(testCaseId)).isEmpty();</span>
+<span class="fc" id="L71">        return new TestHistoryView(TestCaseView.from(testCase, quarantined), results);</span>
+    }
+
+    public List&lt;SignatureView&gt; signatures(String projectKey, int limit) {
+<span class="fc" id="L75">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L76">        List&lt;FailureSignature&gt; signatures = signatureRepository.findByProjectIdOrderByLastSeenDescOccurrencesDesc(</span>
+<span class="fc" id="L77">                project.getId(), PageRequest.of(0, Math.clamp(limit, 1, MAX_LIMIT)));</span>
+<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (signatures.isEmpty()) {</span>
+<span class="nc" id="L79">            return List.of();</span>
+        }
+<span class="fc" id="L81">        Map&lt;Long, Long&gt; affected = signatureRepository.countAffectedTests(</span>
+<span class="fc" id="L82">                        signatures.stream().map(FailureSignature::getId).toList()).stream()</span>
+<span class="fc" id="L83">                .collect(Collectors.toMap(FailureSignatureRepository.AffectedTests::getSignatureId,</span>
+                        FailureSignatureRepository.AffectedTests::getTests));
+<span class="fc" id="L85">        return signatures.stream()</span>
+<span class="fc" id="L86">                .map(s -&gt; SignatureView.from(s, affected.getOrDefault(s.getId(), 0L)))</span>
+<span class="fc" id="L87">                .toList();</span>
+    }
+
+    public SignatureDetails signature(String projectKey, long signatureId) {
+<span class="fc" id="L91">        Project project = projectService.require(projectKey);</span>
+<span class="fc" id="L92">        FailureSignature signature = signatureRepository.findByIdAndProjectId(signatureId, project.getId())</span>
+<span class="fc" id="L93">                .orElseThrow(() -&gt; new SignatureNotFoundException(signatureId));</span>
+<span class="fc" id="L94">        List&lt;SignatureOccurrence&gt; occurrences = resultRepository.findBySignature(signatureId, PageRequest.of(0, 50)).stream()</span>
+<span class="fc" id="L95">                .map(SignatureOccurrence::from)</span>
+<span class="fc" id="L96">                .toList();</span>
+<span class="fc" id="L97">        long affected = occurrences.stream().map(SignatureOccurrence::testCaseId).distinct().count();</span>
+<span class="fc" id="L98">        return new SignatureDetails(SignatureView.from(signature, affected), occurrences);</span>
+    }
+
+    private List&lt;TestCaseView&gt; withQuarantine(Project project, List&lt;TestCase&gt; testCases) {
+<span class="fc" id="L102">        Set&lt;Long&gt; quarantined = quarantineService.activeTestCaseIds(project.getId(),</span>
+<span class="fc" id="L103">                testCases.stream().map(TestCase::getId).toList());</span>
+<span class="fc" id="L104">        return testCases.stream()</span>
+<span class="fc" id="L105">                .map(tc -&gt; TestCaseView.from(tc, quarantined.contains(tc.getId())))</span>
+<span class="fc" id="L106">                .toList();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
