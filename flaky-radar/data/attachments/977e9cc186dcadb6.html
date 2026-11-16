@@ -1,0 +1,68 @@
+<div>Status code 201 </div>
+
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;projectKey&quot;: &quot;proj-sqdamxhe&quot;,
+    &quot;run&quot;: {
+        &quot;id&quot;: 1,
+        &quot;branch&quot;: &quot;main&quot;,
+        &quot;commitSha&quot;: &quot;1e3602860ed01c214a31beb18c59b2b6dcaa8bfe&quot;,
+        &quot;attempt&quot;: 1,
+        &quot;ciRunId&quot;: null,
+        &quot;buildUrl&quot;: null,
+        &quot;receivedAt&quot;: &quot;2026-11-16T18:37:27.555413093Z&quot;,
+        &quot;total&quot;: 4,
+        &quot;passed&quot;: 2,
+        &quot;failed&quot;: 1,
+        &quot;skipped&quot;: 1,
+        &quot;decision&quot;: &quot;FAIL&quot;
+    },
+    &quot;gate&quot;: {
+        &quot;runId&quot;: 1,
+        &quot;decision&quot;: &quot;FAIL&quot;,
+        &quot;blocking&quot;: [
+            {
+                &quot;testName&quot;: &quot;checkout.spec.ts.Checkout › pays with card&quot;,
+                &quot;status&quot;: &quot;FAILED&quot;,
+                &quot;verdict&quot;: &quot;NEW_FAILURE&quot;,
+                &quot;quarantined&quot;: false,
+                &quot;passedAfterRetry&quot;: false,
+                &quot;message&quot;: &quot;checkout.spec.ts:42:5 pays with card&quot;
+            }
+        ],
+        &quot;warnings&quot;: [
+            
+        ]
+    },
+    &quot;problems&quot;: [
+        {
+            &quot;testCaseId&quot;: 65,
+            &quot;testName&quot;: &quot;checkout.spec.ts.Checkout › pays with card&quot;,
+            &quot;status&quot;: &quot;FAILED&quot;,
+            &quot;durationMs&quot;: 6600,
+            &quot;failedAttempts&quot;: 0,
+            &quot;verdict&quot;: &quot;NEW_FAILURE&quot;,
+            &quot;quarantined&quot;: false,
+            &quot;passedAfterRetry&quot;: false,
+            &quot;message&quot;: &quot;checkout.spec.ts:42:5 pays with card&quot;,
+            &quot;signatureId&quot;: 1
+        }
+    ],
+    &quot;dashboardUrl&quot;: &quot;http://radar.test/projects/proj-sqdamxhe/runs/1&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Transfer-Encoding: chunked</div>
+        <div>Keep-Alive: timeout=60</div>
+        <div>Connection: keep-alive</div>
+        <div>Date: Mon, 16 Nov 2026 18:37:27 GMT</div>
+        <div>Location: http://localhost:39785/api/v1/projects/proj-sqdamxhe/runs/1</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+

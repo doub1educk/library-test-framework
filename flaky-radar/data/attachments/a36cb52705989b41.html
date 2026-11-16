@@ -1,0 +1,68 @@
+<div>Status code 201 </div>
+
+
+<h4>Body</h4>
+<div>
+    <pre class="preformated-text">
+{
+    &quot;projectKey&quot;: &quot;proj-bxndlzuj&quot;,
+    &quot;run&quot;: {
+        &quot;id&quot;: 3,
+        &quot;branch&quot;: &quot;main&quot;,
+        &quot;commitSha&quot;: &quot;2fe4c473bd27f1bc6de7c3a141354539c67088e7&quot;,
+        &quot;attempt&quot;: 1,
+        &quot;ciRunId&quot;: null,
+        &quot;buildUrl&quot;: null,
+        &quot;receivedAt&quot;: &quot;2026-11-16T18:37:24.478017606Z&quot;,
+        &quot;total&quot;: 2,
+        &quot;passed&quot;: 1,
+        &quot;failed&quot;: 1,
+        &quot;skipped&quot;: 0,
+        &quot;decision&quot;: &quot;WARN&quot;
+    },
+    &quot;gate&quot;: {
+        &quot;runId&quot;: 3,
+        &quot;decision&quot;: &quot;WARN&quot;,
+        &quot;blocking&quot;: [
+            
+        ],
+        &quot;warnings&quot;: [
+            {
+                &quot;testName&quot;: &quot;ru.demo.CheckoutTest.paysWithCard&quot;,
+                &quot;status&quot;: &quot;FAILED&quot;,
+                &quot;verdict&quot;: &quot;KNOWN_FLAKY&quot;,
+                &quot;quarantined&quot;: false,
+                &quot;passedAfterRetry&quot;: false,
+                &quot;message&quot;: &quot;expected: &lt;200&gt; but was: &lt;502&gt;&quot;
+            }
+        ]
+    },
+    &quot;problems&quot;: [
+        {
+            &quot;testCaseId&quot;: 29,
+            &quot;testName&quot;: &quot;ru.demo.CheckoutTest.paysWithCard&quot;,
+            &quot;status&quot;: &quot;FAILED&quot;,
+            &quot;durationMs&quot;: 50,
+            &quot;failedAttempts&quot;: 0,
+            &quot;verdict&quot;: &quot;KNOWN_FLAKY&quot;,
+            &quot;quarantined&quot;: false,
+            &quot;passedAfterRetry&quot;: false,
+            &quot;message&quot;: &quot;expected: &lt;200&gt; but was: &lt;502&gt;&quot;,
+            &quot;signatureId&quot;: 1
+        }
+    ],
+    &quot;dashboardUrl&quot;: &quot;http://radar.test/projects/proj-bxndlzuj/runs/3&quot;
+}    </pre>
+</div>
+
+<h4>Headers</h4>
+<div>
+        <div>Transfer-Encoding: chunked</div>
+        <div>Keep-Alive: timeout=60</div>
+        <div>Connection: keep-alive</div>
+        <div>Date: Mon, 16 Nov 2026 18:37:24 GMT</div>
+        <div>Location: http://localhost:39785/api/v1/projects/proj-bxndlzuj/runs/3</div>
+        <div>Content-Type: application/json</div>
+</div>
+
+
