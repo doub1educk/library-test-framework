@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Проблемы окружения (Docker / Testcontainers)",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*(Docker|Testcontainers|Could not find a valid Docker environment).*"
+  },
+  {
+    "name": "Недоступность внешних сервисов",
+    "matchedStatuses": ["broken", "failed"],
+    "messageRegex": ".*(Connection refused|Read timed out|ConnectException).*"
+  },
+  {
+    "name": "Дефекты продукта",
+    "matchedStatuses": ["failed"]
+  },
+  {
+    "name": "Дефекты тестов",
+    "matchedStatuses": ["broken"]
+  }
+]

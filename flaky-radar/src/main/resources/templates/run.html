@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Прогон #' + ${details.run().id()})}"></head>
+<body>
+<header th:replace="~{fragments :: header(${project})}"></header>
+<main th:with="run=${details.run()}, gate=${details.gate()}">
+    <h1>
+        Прогон #<span th:text="${run.id()}">1</span>
+        <span class="badge" th:classappend="${gate.decision()}" th:text="${gate.decision()}">PASS</span>
+    </h1>
+    <div class="subtitle">
+        Ветка <code th:text="${run.branch()}">main</code>
+        · коммит <code th:text="${run.commitSha()}">sha</code>
+        · попытка <span th:text="${run.attempt()}">1</span>
+        · <span th:text="${#temporals.format(run.receivedAt(), 'dd.MM.yyyy HH:mm:ss')}">time</span>
+        <span th:if="${run.buildUrl() != null}"> · <a th:href="${run.buildUrl()}">CI</a></span>
+    </div>
+
+    <div class="grid">
+        <div class="card stat"><div class="value" th:text="${run.total()}">0</div><div class="label">всего</div></div>
+        <div class="card stat"><div class="value" th:text="${run.passed()}">0</div><div class="label">прошло</div></div>
+        <div class="card stat"><div class="value" th:text="${run.failed()}">0</div><div class="label">упало</div></div>
+        <div class="card stat"><div class="value" th:text="${run.skipped()}">0</div><div class="label">пропущено</div></div>
+    </div>
+
+    <h2>Блокируют сборку (<span th:text="${#lists.size(gate.blocking())}">0</span>)</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Тест</th><th>Вердикт</th><th>Ошибка</th></tr></thead>
+            <tbody>
+            <tr th:each="item : ${gate.blocking()}">
+                <td><code th:text="${item.testName()}">test</code></td>
+                <td><span class="badge" th:classappend="${item.verdict()}"
+                          th:text="${@summaryRenderer.verdictText(item.verdict())}">новое</span></td>
+                <td class="message" th:text="${item.message()}">message</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(gate.blocking())}"><td colspan="3" class="empty">Нет</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Не блокируют (<span th:text="${#lists.size(gate.warnings())}">0</span>)</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Тест</th><th>Почему</th><th>Ошибка</th></tr></thead>
+            <tbody>
+            <tr th:each="item : ${gate.warnings()}">
+                <td><code th:text="${item.testName()}">test</code></td>
+                <td>
+                    <span th:if="${item.quarantined()}" class="badge muted">в карантине</span>
+                    <span th:if="${item.verdict() != null and !item.quarantined()}" class="badge" th:classappend="${item.verdict()}"
+                          th:text="${@summaryRenderer.verdictText(item.verdict())}">флаки</span>
+                    <span th:if="${item.verdict() == null and item.passedAfterRetry()}" class="badge WARN">прошёл после повтора</span>
+                </td>
+                <td class="message" th:text="${item.message()}">message</td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(gate.warnings())}"><td colspan="3" class="empty">Нет</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>Все проблемы прогона</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Тест</th><th>Статус</th><th class="num">мс</th><th class="num">Неудачных попыток</th><th>Группа ошибки</th></tr></thead>
+            <tbody>
+            <tr th:each="p : ${details.problems()}">
+                <td><a th:href="@{/projects/{key}/tests/{id}(key=${project.key()},id=${p.testCaseId()})}"><code th:text="${p.testName()}">test</code></a></td>
+                <td><span class="badge" th:classappend="${p.status()}" th:text="${p.status()}">FAILED</span></td>
+                <td class="num" th:text="${p.durationMs()}">0</td>
+                <td class="num" th:text="${p.failedAttempts()}">0</td>
+                <td><a th:if="${p.signatureId() != null}"
+                       th:href="@{/projects/{key}/signatures/{id}(key=${project.key()},id=${p.signatureId()})}">открыть</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(details.problems())}"><td colspan="5" class="empty">Все тесты прошли</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <details>
+        <summary>Сводка в markdown (как в комментарии к PR)</summary>
+        <pre th:text="${markdown}">markdown</pre>
+    </details>
+</main>
+</body>
+</html>

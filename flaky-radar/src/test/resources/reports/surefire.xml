@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="3.0.2" name="ru.study.library.api.BookCrudApiTest" time="4.21" tests="6" errors="1" skipped="1" failures="1">
+  <properties>
+    <property name="java.version" value="25.0.2"/>
+  </properties>
+  <testcase name="createBook" classname="ru.study.library.api.BookCrudApiTest" time="0.812"/>
+  <testcase name="getBook" classname="ru.study.library.api.BookCrudApiTest" time="0.120">
+    <system-out><![CDATA[GET /api/v1/books/1]]></system-out>
+  </testcase>
+  <testcase name="updateBook" classname="ru.study.library.api.BookCrudApiTest" time="0.305">
+    <failure message="expected: &lt;200&gt; but was: &lt;500&gt;" type="org.opentest4j.AssertionFailedError"><![CDATA[org.opentest4j.AssertionFailedError: expected: <200> but was: <500>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)
+	at ru.study.library.api.BookCrudApiTest.updateBook(BookCrudApiTest.java:88)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+]]></failure>
+  </testcase>
+  <testcase name="deleteBook" classname="ru.study.library.api.BookCrudApiTest" time="1.001">
+    <error message="Connection refused: localhost/127.0.0.1:54321" type="java.net.ConnectException"><![CDATA[java.net.ConnectException: Connection refused: localhost/127.0.0.1:54321
+	at java.base/sun.nio.ch.Net.connect0(Native Method)
+	at ru.study.library.framework.client.BookClient.delete(BookClient.java:47)
+	at ru.study.library.api.BookCrudApiTest.deleteBook(BookCrudApiTest.java:102)
+]]></error>
+  </testcase>
+  <testcase name="searchByAuthor" classname="ru.study.library.api.BookCrudApiTest" time="0">
+    <skipped message="Отключён до исправления BUG-12"/>
+  </testcase>
+  <testcase name="listBooks" classname="ru.study.library.api.BookCrudApiTest" time="0.950">
+    <flakyFailure message="Read timed out" type="java.net.SocketTimeoutException">
+      <stackTrace><![CDATA[java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278)
+	at ru.study.library.framework.client.BookClient.findAll(BookClient.java:36)
+]]></stackTrace>
+      <system-out><![CDATA[шум, который не должен попасть в подпись]]></system-out>
+    </flakyFailure>
+  </testcase>
+</testsuite>

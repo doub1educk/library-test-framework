@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · Flaky Radar'">Flaky Radar</title>
+    <link rel="stylesheet" th:href="@{/css/radar.css}">
+</head>
+<body>
+<header th:fragment="header(project)" class="top">
+    <a class="logo" th:href="@{/}">Flaky <span>Radar</span></a>
+    <nav>
+        <a th:href="@{/}">Проекты</a>
+        <a th:if="${project != null}" th:href="@{/projects/{key}(key=${project.key()})}" th:text="${project.name()}">проект</a>
+        <a th:href="@{/swagger-ui.html}">API</a>
+    </nav>
+</header>
+</body>
+</html>

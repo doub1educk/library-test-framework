@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${history.test().name()})}"></head>
+<body>
+<header th:replace="~{fragments :: header(${project})}"></header>
+<main th:with="test=${history.test()}">
+    <h1><code th:text="${test.fullName()}">test</code></h1>
+    <div class="subtitle">
+        <span th:if="${test.flaky()}" class="badge WARN">нестабильный</span>
+        <span th:unless="${test.flaky()}" class="badge PASS">стабильный</span>
+        <span th:if="${test.quarantined()}" class="badge muted">в карантине</span>
+        · переключений pass/fail: <b th:text="${test.flipCount()}">0</b>
+        · впервые: <span th:text="${#temporals.format(test.firstSeen(), 'dd.MM.yyyy')}">date</span>
+    </div>
+
+    <h2>Последние результаты (старые слева)</h2>
+    <div class="card">
+        <div class="strip">
+            <a th:each="r : ${timeline}"
+               th:href="@{/projects/{key}/runs/{id}(key=${project.key()},id=${r.runId()})}"
+               th:class="${r.status()} + (${r.passedAfterRetry()} ? ' retry' : '')"
+               th:title="'#' + ${r.runId()} + ' · ' + ${r.branch()} + ' · ' + ${r.status()}"></a>
+        </div>
+    </div>
+
+    <h2>История</h2>
+    <div class="table-wrap">
+        <table>
+            <thead><tr><th>Прогон</th><th>Ветка</th><th>Коммит</th><th>Статус</th><th>Вердикт</th><th>Ошибка</th></tr></thead>
+            <tbody>
+            <tr th:each="r : ${history.results()}">
+                <td><a th:href="@{/projects/{key}/runs/{id}(key=${project.key()},id=${r.runId()})}" th:text="'#' + ${r.runId()}">#1</a></td>
+                <td><code th:text="${r.branch()}">main</code></td>
+                <td><code th:text="${r.shortSha()}">sha</code></td>
+                <td>
+                    <span class="badge" th:classappend="${r.status()}" th:text="${r.status()}">PASSED</span>
+                    <span th:if="${r.passedAfterRetry()}" class="badge WARN">после повтора</span>
+                </td>
+                <td><span th:if="${r.verdict() != null}" class="badge" th:classappend="${r.verdict()}"
+                          th:text="${@summaryRenderer.verdictText(r.verdict())}">вердикт</span></td>
+                <td class="message" th:text="${r.message()}">message</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

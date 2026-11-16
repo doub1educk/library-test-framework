@@ -8,6 +8,11 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
@@ -25,6 +30,13 @@ jobs:
       - name: Run tests (unit, slice, api, architecture) + coverage check
         run: mvn -B verify
 
+      - name: Upload Flaky Radar jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-radar-jar
+          path: flaky-radar/target/flaky-radar.jar
+          retention-days: 3
+
       - name: Checkout gh-pages (history)
         if: always()
         continue-on-error: true
@@ -36,31 +48,47 @@ jobs:
       - name: Restore Allure history
         if: always()
         run: |
-          if git ls-remote --exit-code --heads origin gh-pages > /dev/null; then
-            git fetch --depth=1 origin gh-pages
-            mkdir -p target/allure-results
-            git archive FETCH_HEAD history | tar -x -C target/allure-results || true
-          else
-            echo "Ветки gh-pages пока нет (первый прогон), история пропущена"
-          fi
+          for module in flaky-radar library-demo; do
+            if [ -d "gh-pages/$module/history" ]; then
+              mkdir -p "$module/target/allure-results/history"
+              cp -r "gh-pages/$module/history/." "$module/target/allure-results/history/"
+            else
+              echo "Истории для $module пока нет (первый прогон)"
+            fi
+          done
 
-      - name: Build Allure report
+      - name: Build Allure reports
         if: always()
-        run: mvn -B allure:report
+        run: mvn -B -pl flaky-radar,library-demo allure:report
 
-      - name: Add JaCoCo report into the site
+      - name: Assemble site
         if: always()
         run: |
-          if [ -d target/site/jacoco ]; then
-            cp -r target/site/jacoco target/site/allure-maven-plugin/jacoco
-          fi
+          mkdir -p site
+          for module in flaky-radar library-demo; do
+            if [ -d "$module/target/site/allure-maven-plugin" ]; then
+              cp -r "$module/target/site/allure-maven-plugin" "site/$module"
+            fi
+            if [ -d "$module/target/site/jacoco" ]; then
+              cp -r "$module/target/site/jacoco" "site/$module/jacoco"
+            fi
+          done
+          cat > site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="ru"><head><meta charset="utf-8"><title>Flaky Radar · отчёты</title>
+          <style>body{font:16px system-ui;max-width:640px;margin:48px auto;padding:0 16px}li{margin:8px 0}</style></head>
+          <body><h1>Flaky Radar · отчёты тестов</h1><ul>
+          <li><a href="flaky-radar/">Flaky Radar: Allure-отчёт</a> · <a href="flaky-radar/jacoco/">покрытие</a></li>
+          <li><a href="library-demo/">Библиотека (демо): Allure-отчёт</a> · <a href="library-demo/jacoco/">покрытие</a></li>
+          </ul></body></html>
+          HTML
 
       - name: Generate coverage badge
         if: always()
         uses: cicirello/jacoco-badge-generator@v2
         with:
-          jacoco-csv-file: target/site/jacoco/jacoco.csv
-          badges-directory: target/site/allure-maven-plugin/badges
+          jacoco-csv-file: flaky-radar/target/site/jacoco/jacoco.csv
+          badges-directory: site/badges
           generate-coverage-badge: true
           coverage-badge-filename: coverage.svg
 
@@ -70,4 +98,112 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: target/site/allure-maven-plugin
+          publish_dir: site
+
+  dogfood:
+    needs: test
+    runs-on: ubuntu-latest
+    services:
+      radar-db:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: flakyradar
+          POSTGRES_USER: flakyradar
+          POSTGRES_PASSWORD: flakyradar
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U flakyradar" --health-interval 5s --health-retries 10
+    env:
+      RADAR_URL: ${{ secrets.RADAR_URL || 'http://localhost:8080' }}
+      RADAR_PROJECT: library-demo
+      RADAR_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+      ADMIN_TOKEN: ci-admin-token
+      EXTERNAL_RADAR: ${{ secrets.RADAR_URL != '' }}
+      EXTERNAL_API_KEY: ${{ secrets.RADAR_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Download Flaky Radar jar
+        if: env.EXTERNAL_RADAR != 'true'
+        uses: actions/download-artifact@v4
+        with:
+          name: flaky-radar-jar
+
+      - name: Start Flaky Radar
+        if: env.EXTERNAL_RADAR != 'true'
+        run: |
+          FLAKY_RADAR_ADMIN_TOKEN="$ADMIN_TOKEN" FLAKY_RADAR_PUBLIC_URL="$RADAR_URL" \
+            nohup java -jar flaky-radar.jar > radar.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null; then echo "Flaky Radar запущен"; exit 0; fi
+            sleep 2
+          done
+          cat radar.log
+          exit 1
+
+      - name: Create project
+        id: project
+        run: |
+          if [ -n "$EXTERNAL_API_KEY" ]; then
+            echo "api_key=$EXTERNAL_API_KEY" >> "$GITHUB_OUTPUT"
+          else
+            key=$(curl -sS --fail-with-body -X POST "$RADAR_URL/api/v1/projects" \
+              -H "X-Admin-Token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
+              -d '{"key":"library-demo","name":"Библиотека (демо)"}' | jq -r .apiKey)
+            echo "::add-mask::$key"
+            echo "api_key=$key" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "Attempt 1: library tests (the demo test is unlucky)"
+        continue-on-error: true
+        env:
+          LIBRARY_DEMO_FLAKY: fail
+        run: mvn -B -pl library-demo -am test -DexcludedGroups=demo -Djacoco.skip=true
+
+      - name: Upload attempt 1 to Flaky Radar
+        env:
+          RADAR_API_KEY: ${{ steps.project.outputs.api_key }}
+          RADAR_ATTEMPT: '1'
+          RADAR_ENFORCE: 'false'
+        run: bash scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
+
+      - name: "Attempt 2: rerun on the same commit"
+        run: mvn -B -pl library-demo -am test -DexcludedGroups=demo -Djacoco.skip=true
+
+      - name: Upload attempt 2 and check the gate
+        id: gate
+        env:
+          RADAR_API_KEY: ${{ steps.project.outputs.api_key }}
+          RADAR_ATTEMPT: '2'
+        run: bash scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
+
+      - name: Flaky tests found by the radar
+        if: always()
+        run: |
+          {
+            cat radar-summary.md 2>/dev/null || echo "Сводка не получена"
+            echo
+            echo "**Нестабильные тесты по версии Flaky Radar:**"
+            curl -sS "$RADAR_URL/api/v1/projects/$RADAR_PROJECT/tests?flaky=true" \
+              | jq -r '.[] | "- `\(.fullName)` (переключений: \(.flipCount))"' || true
+          } | tee -a "$GITHUB_STEP_SUMMARY" > radar-comment.md
+
+      - name: Comment on the pull request
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" --edit-last --body-file radar-comment.md \
+            || gh pr comment "${{ github.event.pull_request.number }}" --body-file radar-comment.md
+
+      - name: Flaky Radar log
+        if: failure()
+        run: tail -n 200 radar.log || true

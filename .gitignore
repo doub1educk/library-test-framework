@@ -3,4 +3,11 @@ target/
 *.iml
 out/
 .DS_Store
-ajcore.*.txt`
+ajcore.*.txt
+.allure/
+
+radar-summary.md
+radar-comment.md
+
+README.md
+CLAUDE.md
