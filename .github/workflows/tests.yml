@@ -183,7 +183,7 @@ jobs:
           RADAR_API_KEY: ${{ steps.project.outputs.api_key }}
           RADAR_ATTEMPT: '1'
           RADAR_ENFORCE: 'false'
-        run: scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
+        run: bash scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
 
       - name: "Attempt 2: rerun on the same commit"
         run: mvn -B -pl library-demo -am test -DexcludedGroups=demo -Djacoco.skip=true
@@ -193,7 +193,7 @@ jobs:
         env:
           RADAR_API_KEY: ${{ steps.project.outputs.api_key }}
           RADAR_ATTEMPT: '2'
-        run: scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
+        run: bash scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
 
       - name: Flaky tests found by the radar
         if: always()
