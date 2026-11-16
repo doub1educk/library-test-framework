@@ -9,9 +9,7 @@ import ru.study.flakyradar.report.TestStatus;
 import java.time.Instant;
 import java.util.List;
 
-/** DTO прогонов. */
 public final class RunDtos {
-
     private RunDtos() {
     }
 
@@ -28,7 +26,6 @@ public final class RunDtos {
             int failed,
             int skipped,
             GateDecision decision) {
-
         public static RunView from(TestRun run) {
             return new RunView(run.getId(), run.getBranch(), run.getCommitSha(), run.getAttempt(), run.getCiRunId(),
                     run.getBuildUrl(), run.getReceivedAt(), run.getTotal(), run.getPassed(), run.getFailed(),
@@ -40,9 +37,6 @@ public final class RunDtos {
         }
     }
 
-    /**
-     * Результат теста в прогоне. Флаг {@code quarantined} отражает карантин на момент запроса.
-     */
     public record ResultView(
             Long testCaseId,
             String testName,
@@ -54,7 +48,6 @@ public final class RunDtos {
             boolean passedAfterRetry,
             String message,
             Long signatureId) {
-
         static ResultView from(TestResult r, boolean quarantinedNow) {
             return new ResultView(r.getTestCase().getId(), r.getTestCase().getFullName(), r.getStatus(),
                     r.getDurationMs(), r.getFailedAttempts(), r.getVerdict(), quarantinedNow, r.passedAfterRetry(),
@@ -69,16 +62,11 @@ public final class RunDtos {
             boolean quarantined,
             boolean passedAfterRetry,
             String message) {
-
         static GateItem from(ResultView r) {
             return new GateItem(r.testName(), r.status(), r.verdict(), r.quarantined(), r.passedAfterRetry(), r.message());
         }
     }
 
-    /**
-     * Решение для CI. Всегда отдаётся с кодом 200: CI проверяет поле {@code decision}
-     * (например, {@code jq -e '.decision != "FAIL"'}).
-     */
     public record GateResponse(Long runId, GateDecision decision, List<GateItem> blocking, List<GateItem> warnings) {
     }
 

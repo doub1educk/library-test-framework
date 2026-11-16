@@ -12,11 +12,9 @@ import ru.study.flakyradar.analysis.GateDecision;
 
 import java.time.Instant;
 
-/** Один загруженный прогон тестов (одна попытка одного CI-джоба). */
 @Entity
 @Table(name = "test_run")
 public class TestRun {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -59,7 +57,6 @@ public class TestRun {
     private GateDecision decision;
 
     protected TestRun() {
-        // для JPA
     }
 
     public TestRun(Long projectId, String branch, String commitSha, int attempt, String ciRunId, String buildUrl,

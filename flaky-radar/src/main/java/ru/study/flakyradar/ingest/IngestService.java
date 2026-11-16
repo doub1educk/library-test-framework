@@ -49,20 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Приём отчёта целиком в одной транзакции:
- * <ol>
- *     <li>проверка API-ключа и идемпотентность по (ciRunId, attempt);</li>
- *     <li>разбор всех файлов и слияние повторов;</li>
- *     <li>upsert тестов, чтение истории (до текущего прогона) и карантина одним запросом на всё;</li>
- *     <li>для каждого теста: подпись ошибки, вердикт, сохранение результата, пересчёт флаки-статуса;</li>
- *     <li>решение gate и событие для уведомлений.</li>
- * </ol>
- */
 @Service
 @Transactional(readOnly = true)
 public class IngestService {
-
     private static final Logger log = LoggerFactory.getLogger(IngestService.class);
 
     private final ProjectService projectService;
@@ -83,7 +72,7 @@ public class IngestService {
     private final ApplicationEventPublisher events;
     private final Clock clock;
 
-    @SuppressWarnings("java:S107") // оркестратор приёма действительно собирает много зависимостей
+    @SuppressWarnings("java:S107")
     public IngestService(ProjectService projectService, QuarantineService quarantineService,
                          RunQueryService runQueryService, TestRunRepository runRepository,
                          TestCaseRepository testCaseRepository, TestResultRepository resultRepository,
@@ -110,7 +99,6 @@ public class IngestService {
         this.clock = clock;
     }
 
-    /** Результат приёма: детали прогона и признак того, что такой прогон уже был загружен раньше. */
     public record IngestResult(RunDetails details, boolean duplicate) {
     }
 
@@ -195,7 +183,6 @@ public class IngestService {
         return ParsedReport.merge(parsed);
     }
 
-    /** Находит существующие тесты одним запросом (порциями) и создаёт недостающие. */
     private Map<String, TestCase> resolveTestCases(Project project, ParsedReport report, Instant now) {
         List<String> names = report.testCases().stream().map(ParsedTestCase::fullName).toList();
         Map<String, TestCase> byName = new HashMap<>();
@@ -223,9 +210,7 @@ public class IngestService {
         return text.length() <= max ? text : text.substring(0, max) + "…";
     }
 
-    /** Подписи в пределах одной загрузки: один запрос на чтение уже известных, новые создаются по ходу. */
     private final class SignatureCache {
-
         private final Long projectId;
         private final Instant now;
         private final Map<String, FailureSignature> byHash = new HashMap<>();

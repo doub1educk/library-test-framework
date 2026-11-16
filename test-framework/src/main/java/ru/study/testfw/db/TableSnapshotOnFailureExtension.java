@@ -12,13 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/**
- * Снимок таблиц БД на момент падения. Таблицы берутся из {@link SnapshotTablesOnFailure},
- * доступ к БД идёт через {@link JdbcTemplate} из Spring-контекста теста, поэтому расширение не знает
- * ни о сущностях, ни о репозиториях конкретного проекта.
- */
 public class TableSnapshotOnFailureExtension implements AfterTestExecutionCallback {
-
     @Override
     public void afterTestExecution(ExtensionContext context) {
         if (context.getExecutionException().isEmpty()) {

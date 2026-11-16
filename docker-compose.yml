@@ -1,8 +1,4 @@
-# docker compose up -d                         — только инфраструктура для локальной разработки
-# docker compose --profile app up -d --build   — плюс сам Flaky Radar в контейнере
-#                                                (перед этим: mvn -pl flaky-radar -am package -DskipTests)
 services:
-  # ===== Flaky Radar =====
   radar-db:
     image: postgres:17-alpine
     environment:
@@ -34,7 +30,6 @@ services:
     ports:
       - "8080:8080"
 
-  # ===== Демо-проект «Библиотека» =====
   postgres:
     image: postgres:17-alpine
     environment:

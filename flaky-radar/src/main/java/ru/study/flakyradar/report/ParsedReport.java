@@ -5,9 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Результат разбора одного или нескольких файлов отчёта. */
 public record ParsedReport(List<ParsedTestCase> testCases) {
-
     public ParsedReport {
         testCases = List.copyOf(testCases);
     }
@@ -24,10 +22,6 @@ public record ParsedReport(List<ParsedTestCase> testCases) {
         return (int) testCases.stream().filter(tc -> tc.status().isFailure()).count();
     }
 
-    /**
-     * Объединяет отчёты нескольких файлов. Если один и тот же тест встретился в разных файлах
-     * (например, отчёт каждого ретрая лежит отдельно), выполнения сливаются так же, как внутри файла.
-     */
     public static ParsedReport merge(List<ParsedReport> reports) {
         Map<String, ParsedTestCase> merged = new LinkedHashMap<>();
         for (ParsedReport report : reports) {
@@ -38,13 +32,8 @@ public record ParsedReport(List<ParsedTestCase> testCases) {
         return new ParsedReport(new ArrayList<>(merged.values()));
     }
 
-    /**
-     * Слияние двух выполнений одного теста: итоговый статус по последнему,
-     * упавшие выполнения суммируются, сохраняется последнее известное падение.
-     */
     static ParsedTestCase combine(ParsedTestCase earlier, ParsedTestCase later) {
         long duration = earlier.durationMs() + later.durationMs();
-        // пропуск в одном из выполнений не перекрывает реальный результат
         if (later.status() == TestStatus.SKIPPED) {
             return withDuration(earlier, duration);
         }

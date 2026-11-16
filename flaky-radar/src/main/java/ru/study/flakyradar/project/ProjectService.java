@@ -18,7 +18,6 @@ import java.util.List;
 @Service
 @Transactional(readOnly = true)
 public class ProjectService {
-
     private final ProjectRepository repository;
     private final FlakyRadarProperties properties;
     private final Clock clock;
@@ -40,7 +39,6 @@ public class ProjectService {
         return new ProjectCredentials(project.getKey(), project.getName(), apiKey);
     }
 
-    /** Перевыпуск ключа: старый сразу перестаёт работать. */
     @Transactional
     public ProjectCredentials rotateApiKey(String key, String adminToken) {
         requireAdmin(adminToken);
@@ -58,12 +56,10 @@ public class ProjectService {
         return ProjectResponse.from(require(key));
     }
 
-    /** Проект по ключу или 404. Для внутреннего использования другими сервисами. */
     public Project require(String key) {
         return repository.findByKey(key).orElseThrow(() -> new ProjectNotFoundException(key));
     }
 
-    /** Проект, если API-ключ подходит. Иначе 404 (нет проекта) или 401 (неверный ключ). */
     public Project authenticate(String key, String apiKey) {
         Project project = require(key);
         if (!ApiKeys.matches(apiKey, project.getApiKeyHash())) {

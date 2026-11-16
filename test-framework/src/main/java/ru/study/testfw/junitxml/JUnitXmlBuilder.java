@@ -7,20 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Генератор отчётов JUnit XML для тестов. Тест описывает только суть («этот тест упал с такой ошибкой»),
- * а builder собирает корректный XML в формате Surefire.
- *
- * <pre>{@code
- * String xml = JUnitXmlBuilder.report()
- *         .passed("ru.demo.LoginTest", "opensPage")
- *         .failed("ru.demo.LoginTest", "logsIn", "java.lang.AssertionError", "expected 200 but was 500")
- *         .flakyPassed("ru.demo.CartTest", "addsItem", "java.net.SocketTimeoutException", "Read timed out")
- *         .toXml();
- * }</pre>
- */
 public final class JUnitXmlBuilder {
-
     private final Map<String, List<Case>> suites = new LinkedHashMap<>();
     private double defaultDuration = 0.05;
 
@@ -52,12 +39,10 @@ public final class JUnitXmlBuilder {
         return add(suite, new Case(name, Kind.SKIPPED, null, "skipped", defaultDuration));
     }
 
-    /** Surefire с rerunFailingTestsCount: сначала упал, при повторе прошёл ({@code <flakyFailure>}). */
     public JUnitXmlBuilder flakyPassed(String suite, String name, String type, String message) {
         return add(suite, new Case(name, Kind.FLAKY, type, message, defaultDuration));
     }
 
-    /** Surefire с rerunFailingTestsCount: упал и при всех повторах ({@code <failure>} + {@code <rerunFailure>}). */
     public JUnitXmlBuilder rerunFailed(String suite, String name, String type, String message) {
         return add(suite, new Case(name, Kind.RERUN_FAILED, type, message, defaultDuration));
     }
@@ -124,7 +109,6 @@ public final class JUnitXmlBuilder {
                 .append("      </").append(tag).append(">\n");
     }
 
-    /** Стек как у настоящего Surefire: исключение, затем кадр тестового метода. */
     private static String stackTrace(String suite, Case c) {
         String simpleName = suite.substring(suite.lastIndexOf('.') + 1);
         return c.type + ": " + c.message

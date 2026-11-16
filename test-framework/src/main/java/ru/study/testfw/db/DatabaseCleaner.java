@@ -5,12 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/**
- * Очищает все таблицы схемы public, кроме истории Flyway, одним TRUNCATE ... CASCADE.
- * Так быстрее и надёжнее, чем deleteAll() по каждому репозиторию с учётом внешних ключей.
- */
 public final class DatabaseCleaner {
-
     private static final String FLYWAY_HISTORY = "flyway_schema_history";
 
     private DatabaseCleaner() {

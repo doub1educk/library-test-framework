@@ -96,8 +96,6 @@
     </build>
 
     <profiles>
-        <!-- Мутационное тестирование чистой логики:
-             mvn -pl flaky-radar -am -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage -->
         <profile>
             <id>mutation</id>
             <build>

@@ -1,4 +1,3 @@
-# Образ сервиса. Сначала соберите jar: mvn -pl flaky-radar -am package -DskipTests
 FROM eclipse-temurin:25-jre
 WORKDIR /app
 RUN useradd --system --uid 1001 radar

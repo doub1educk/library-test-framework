@@ -13,14 +13,9 @@ import ru.study.flakyradar.report.TestStatus;
 
 import java.time.Instant;
 
-/**
- * Тест внутри проекта. Хранит денормализованное состояние (флаки ли он, сколько переключений),
- * которое пересчитывается при каждой загрузке: так дашборд и вердикты не пересчитывают историю на каждый запрос.
- */
 @Entity
 @Table(name = "test_case")
 public class TestCase {
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "test_case_seq")
     @SequenceGenerator(name = "test_case_seq", sequenceName = "test_case_seq", allocationSize = 50)
@@ -55,7 +50,6 @@ public class TestCase {
     private Instant lastSeen;
 
     protected TestCase() {
-        // для JPA
     }
 
     public TestCase(Long projectId, String suite, String name, String fullName, Instant seenAt) {
@@ -67,7 +61,6 @@ public class TestCase {
         this.lastSeen = seenAt;
     }
 
-    /** Обновляет состояние теста после очередного результата. */
     public void recordResult(TestStatus status, boolean flaky, int flipCount, Instant seenAt) {
         if (status != TestStatus.SKIPPED) {
             this.lastStatus = status;

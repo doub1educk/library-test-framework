@@ -10,27 +10,18 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Превращает текст ошибки в устойчивую подпись: одно и то же падение в разных прогонах
- * должно давать одинаковый хэш, хотя порты, id, время и адреса объектов каждый раз разные.
- *
- * <p>Подпись = тип исключения + первая строка сообщения + до 3 первых кадров стека не из фреймворков.
- * Номера строк в кадрах отбрасываются: иначе любая правка файла теста порождала бы новую подпись.
- */
 public final class SignatureNormalizer {
-
     static final int MAX_FRAMES = 3;
     private static final int MAX_MESSAGE_LENGTH = 500;
 
-    /** Правила применяются по порядку: сначала самые специфичные (UUID раньше чисел, дата раньше времени). */
     private static final List<Rule> RULES = List.of(
-            new Rule("\\u001B\\[[;\\d]*[A-Za-z]", ""),                                       // ANSI-цвета Playwright/pytest
+            new Rule("\\u001B\\[[;\\d]*[A-Za-z]", ""),
             new Rule("(?i)\\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\b", "<UUID>"),
             new Rule("\\b\\d{4}-\\d{2}-\\d{2}[T ]\\d{2}:\\d{2}(:\\d{2}([.,]\\d+)?)?(Z|[+-]\\d{2}:?\\d{2})?", "<TS>"),
             new Rule("\\b\\d{4}-\\d{2}-\\d{2}\\b", "<DATE>"),
             new Rule("\\b\\d{1,2}:\\d{2}:\\d{2}([.,]\\d+)?\\b", "<TIME>"),
             new Rule("(?i)\\b0x[0-9a-f]+\\b", "<HEX>"),
-            new Rule("@[0-9a-f]{5,}\\b", "@<HEX>"),                                          // Object.toString(): Foo@1b6d3586
+            new Rule("@[0-9a-f]{5,}\\b", "@<HEX>"),
             new Rule("(?i)\\b(localhost|127\\.0\\.0\\.1|0\\.0\\.0\\.0|\\[::1\\]|host\\.docker\\.internal):\\d{2,5}\\b", "$1:<PORT>"),
             new Rule("(?i)(://[\\w.-]+):\\d{2,5}\\b", "$1:<PORT>"),
             new Rule("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b", "<IP>"),
@@ -39,7 +30,6 @@ public final class SignatureNormalizer {
             new Rule("\\b\\d{2,}\\b", "<N>"),
             new Rule("\\s+", " "));
 
-    /** Кадры фреймворков и рантайма не говорят, где именно сломалось, и шумят при обновлении библиотек. */
     private static final List<String> FRAMEWORK_FRAME_PREFIXES = List.of(
             "java.", "javax.", "jdk.", "sun.", "com.sun.", "kotlin.", "scala.",
             "org.junit.", "junit.", "org.opentest4j.", "org.assertj.", "org.hamcrest.", "org.mockito.",
@@ -50,7 +40,6 @@ public final class SignatureNormalizer {
     private static final Pattern JAVA_FRAME = Pattern.compile("^\\s*at\\s+(.+?)\\s*$");
     private static final Pattern PYTHON_FRAME = Pattern.compile("^(\\S+\\.py):\\d+:?\\s.*$");
     private static final Pattern LINE_NUMBERS = Pattern.compile("(:\\d+)+(?=\\)?$)");
-    /** Строка вида «java.lang.IllegalStateException: ...», «Error: ...» или pytest-овская «E   AssertionError: ...». */
     private static final Pattern TYPE_AT_LINE_START = Pattern.compile(
             "^\\s*(?:E\\s+)?((?:[A-Za-z_$][\\w$]*\\.)*[\\w$]*(?:Error|Exception|Failure|Throwable))(?::|$)");
     private static final Pattern PYTEST_PREFIX = Pattern.compile("^\\s*E\\s+");
@@ -59,11 +48,6 @@ public final class SignatureNormalizer {
         return fingerprint(type, message, stackTrace, null);
     }
 
-    /**
-     * @param testClass класс (classname) упавшего теста: его кадры в подпись не входят. Иначе одна и та же
-     *                  причина («стенд недоступен») у разных тестов давала бы разные подписи из-за кадра
-     *                  с именем тестового метода.
-     */
     public FailureFingerprint fingerprint(String type, String message, String stackTrace, String testClass) {
         String safeType = nullToEmpty(type).strip();
         String safeMessage = nullToEmpty(message);
@@ -73,11 +57,9 @@ public final class SignatureNormalizer {
         String messageSource;
         String typeLine = firstLineWithType(safeStack);
         if (isClassName(safeType)) {
-            // Surefire/Gradle: type = класс исключения, message = его сообщение
             exceptionType = safeType;
             messageSource = safeMessage.isBlank() ? firstMeaningfulLine(safeStack) : safeMessage;
         } else if (typeLine != null) {
-            // Playwright (type="FAILURE", message = «файл:строка заголовок») и pytest: суть ошибки в теле
             exceptionType = typeOf(typeLine);
             messageSource = PYTEST_PREFIX.matcher(typeLine).replaceFirst("");
         } else {
@@ -87,7 +69,6 @@ public final class SignatureNormalizer {
         }
 
         String messageLine = normalize(truncate(firstMeaningfulLine(messageSource)));
-        // сообщение часто начинается с имени исключения: убираем, чтобы не дублировать тип
         if (!exceptionType.isEmpty() && messageLine.startsWith(exceptionType)) {
             messageLine = messageLine.substring(exceptionType.length()).replaceFirst("^:\\s*", "");
         }
@@ -99,7 +80,6 @@ public final class SignatureNormalizer {
         return new FailureFingerprint(exceptionType, normalizedText, sha256(normalizedText));
     }
 
-    /** Нормализация одной строки: применяет все правила по порядку. */
     public String normalize(String text) {
         return applyRules(text);
     }
@@ -112,10 +92,6 @@ public final class SignatureNormalizer {
         return result.strip();
     }
 
-    /**
-     * Похоже ли значение атрибута type на класс исключения. Playwright пишет type="FAILURE",
-     * pytest пишет type="pytest.skip": это не классы.
-     */
     static boolean isClassName(String type) {
         return !type.isBlank()
                 && !type.equals(type.toUpperCase(Locale.ROOT))
@@ -156,7 +132,6 @@ public final class SignatureNormalizer {
         Matcher java = JAVA_FRAME.matcher(line);
         if (java.matches()) {
             String frame = java.group(1);
-            // «Foo.bar(Foo.java:42)» -> «Foo.bar(Foo.java)», «file.ts:12:5» -> «file.ts»
             frame = frame.replaceAll(":\\d+(?=\\))", "");
             return LINE_NUMBERS.matcher(frame).replaceAll("");
         }

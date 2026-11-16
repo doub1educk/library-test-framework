@@ -9,11 +9,9 @@ import jakarta.persistence.Table;
 
 import java.time.Instant;
 
-/** Группа одинаковых (после нормализации) ошибок внутри проекта. */
 @Entity
 @Table(name = "failure_signature")
 public class FailureSignature {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,7 +28,6 @@ public class FailureSignature {
     @Column(name = "normalized_text", nullable = false, columnDefinition = "text")
     private String normalizedText;
 
-    /** Пример исходного (ненормализованного) сообщения, чтобы человеку было понятнее. */
     @Column(name = "sample_message", columnDefinition = "text")
     private String sampleMessage;
 
@@ -44,7 +41,6 @@ public class FailureSignature {
     private Instant lastSeen;
 
     protected FailureSignature() {
-        // для JPA
     }
 
     public FailureSignature(Long projectId, String hash, String exceptionType, String normalizedText,

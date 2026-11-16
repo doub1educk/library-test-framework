@@ -13,14 +13,9 @@ import ru.study.flakyradar.history.TestCase;
 
 import java.time.Instant;
 
-/**
- * Карантин теста: его падения не блокируют CI. Запись активна, пока не снята вручную
- * ({@code removedAt}) и не истёк срок ({@code expiresAt}, если задан).
- */
 @Entity
 @Table(name = "quarantine")
 public class Quarantine {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -48,7 +43,6 @@ public class Quarantine {
     private Instant removedAt;
 
     protected Quarantine() {
-        // для JPA
     }
 
     public Quarantine(Long projectId, TestCase testCase, String reason, String createdBy, Instant createdAt,

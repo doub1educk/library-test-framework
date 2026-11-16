@@ -6,6 +6,8 @@ out/
 ajcore.*.txt
 .allure/
 
-# артефакты scripts/flaky-radar-upload.sh
 radar-summary.md
 radar-comment.md
+
+README.md
+CLAUDE.md

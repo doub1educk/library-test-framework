@@ -7,16 +7,13 @@ import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
 
-/** Генерация, хэширование и сравнение секретов (API-ключей проектов и токена администратора). */
 public final class ApiKeys {
-
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int KEY_BYTES = 24;
 
     private ApiKeys() {
     }
 
-    /** Новый ключ вида {@code frk_<32 символа base64url>}: префикс помогает узнать ключ в логах и секретах CI. */
     public static String generate() {
         byte[] bytes = new byte[KEY_BYTES];
         RANDOM.nextBytes(bytes);
@@ -32,7 +29,6 @@ public final class ApiKeys {
         }
     }
 
-    /** Сравнение за постоянное время, чтобы по времени ответа нельзя было подобрать ключ. */
     public static boolean matches(String candidate, String expectedHash) {
         if (candidate == null || candidate.isEmpty() || expectedHash == null) {
             return false;

@@ -28,7 +28,6 @@
         <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- AspectJ 1.9.25+ нужен для Java 25 (агент для @Step в Allure) -->
         <aspectj.version>1.9.25.1</aspectj.version>
         <allure.version>2.32.0</allure.version>
         <allure.report.version>2.30.0</allure.report.version>
@@ -41,11 +40,8 @@
         <pitest.version>1.20.0</pitest.version>
         <pitest-junit5.version>1.2.2</pitest-junit5.version>
 
-        <!-- пустое значение, чтобы @{argLine} не ломался, если JaCoCo отключён -->
         <argLine/>
-        <!-- demo (намеренно падающие) и flaky-demo (нестабильный для dogfooding) по умолчанию не запускаются -->
         <excludedGroups>demo,flaky-demo</excludedGroups>
-        <!-- порог покрытия строк; модуль может переопределить -->
         <jacoco.minimum.line.coverage>0.70</jacoco.minimum.line.coverage>
     </properties>
 
@@ -94,7 +90,6 @@
     <build>
         <pluginManagement>
             <plugins>
-                <!-- Выставляет свойства вида ${group:artifact:jar} с путями к jar-файлам (для javaagent) -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
@@ -108,7 +103,6 @@
                     </executions>
                 </plugin>
 
-                <!-- Копирует categories.json и environment.properties в allure-results -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -150,7 +144,6 @@
                     </configuration>
                 </plugin>
 
-                <!-- Покрытие кода -->
                 <plugin>
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
@@ -193,7 +186,6 @@
                     </executions>
                 </plugin>
 
-                <!-- mvn -pl <модуль> allure:serve / allure:report -->
                 <plugin>
                     <groupId>io.qameta.allure</groupId>
                     <artifactId>allure-maven</artifactId>

@@ -22,12 +22,8 @@ import ru.study.flakyradar.testcase.TestCaseQueryService;
 
 import java.util.List;
 
-/**
- * Дашборд на Thymeleaf: только чтение, данные берутся из тех же сервисов, что и REST API.
- */
 @Controller
 public class DashboardController {
-
     private final ProjectService projectService;
     private final RunQueryService runQueryService;
     private final TestCaseQueryService testCaseQueryService;
@@ -44,7 +40,6 @@ public class DashboardController {
         this.summaryRenderer = summaryRenderer;
     }
 
-    /** Строка таблицы проектов на главной. */
     public record ProjectRow(ProjectResponse project, RunView lastRun, int flakyTests) {
     }
 
@@ -84,7 +79,6 @@ public class DashboardController {
         model.addAttribute("project", projectService.get(key));
         var history = testCaseQueryService.history(key, testId);
         model.addAttribute("history", history);
-        // полоска результатов: старые слева, новые справа
         model.addAttribute("timeline", history.results().reversed());
         return "test";
     }

@@ -8,12 +8,7 @@ import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 
-/**
- * HTTP-клиент API Flaky Radar на RestAssured. Возвращает сырой {@link Response}:
- * проверки статусов делают шаги ({@link RadarSteps}) или сам тест для негативных сценариев.
- */
 public class RadarClient {
-
     public static final String API = "/api/v1";
     private static final String API_KEY = "X-Api-Key";
     private static final String ADMIN_TOKEN = "X-Admin-Token";
@@ -28,8 +23,6 @@ public class RadarClient {
         this.plain = RestAssuredSpecs.base(port, "").build();
     }
 
-    // ===== проекты =====
-
     public Response createProject(String adminToken, Object body) {
         return withHeader(given(json), ADMIN_TOKEN, adminToken).body(body).post("/projects");
     }
@@ -41,8 +34,6 @@ public class RadarClient {
     public Response projects() {
         return given(json).get("/projects");
     }
-
-    // ===== прогоны =====
 
     public Response upload(String key, String apiKey, RunUpload upload) {
         RequestSpecification request = withHeader(given(multipart), API_KEY, apiKey);
@@ -74,8 +65,6 @@ public class RadarClient {
         return given(json).get("/projects/{key}/runs/{id}/summary.md", key, runId);
     }
 
-    // ===== тесты и подписи =====
-
     public Response tests(String key, boolean flakyOnly) {
         return given(json).queryParam("flaky", flakyOnly).get("/projects/{key}/tests", key);
     }
@@ -92,8 +81,6 @@ public class RadarClient {
         return given(json).get("/projects/{key}/signatures/{id}", key, signatureId);
     }
 
-    // ===== карантин =====
-
     public Response addQuarantine(String key, String apiKey, Object body) {
         return withHeader(given(json), API_KEY, apiKey).body(body).post("/projects/{key}/quarantine", key);
     }
@@ -105,8 +92,6 @@ public class RadarClient {
     public Response removeQuarantine(String key, String apiKey, long id) {
         return withHeader(given(json), API_KEY, apiKey).delete("/projects/{key}/quarantine/{id}", key, id);
     }
-
-    // ===== дашборд =====
 
     public Response page(String path) {
         return given(plain).accept("text/html").get(path);

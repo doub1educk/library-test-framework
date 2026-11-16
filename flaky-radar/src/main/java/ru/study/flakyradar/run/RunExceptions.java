@@ -1,8 +1,6 @@
 package ru.study.flakyradar.run;
 
-/** Исключения фичи «прогоны». */
 public final class RunExceptions {
-
     private RunExceptions() {
     }
 

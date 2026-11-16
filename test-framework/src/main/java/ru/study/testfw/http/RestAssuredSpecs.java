@@ -15,12 +15,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
-/**
- * Общие настройки RestAssured: Jackson с java.time, Allure-фильтр (каждый запрос и ответ попадает в отчёт),
- * короткий лог в консоль. Клиенты конкретных API строят свои спеки поверх {@link #base(int, String)}.
- */
 public final class RestAssuredSpecs {
-
     public static final RestAssuredConfig CONFIG = RestAssuredConfig.config()
             .objectMapperConfig(ObjectMapperConfig.objectMapperConfig()
                     .jackson2ObjectMapperFactory((type, charset) -> new ObjectMapper()
@@ -30,7 +25,6 @@ public final class RestAssuredSpecs {
     private RestAssuredSpecs() {
     }
 
-    /** Базовая спека: localhost:port + basePath, JSON, Allure. */
     public static RequestSpecBuilder base(int port, String basePath) {
         return new RequestSpecBuilder()
                 .setBaseUri("http://localhost")
@@ -49,7 +43,6 @@ public final class RestAssuredSpecs {
                 .build();
     }
 
-    /** Ответ в формате RFC 9457 Problem Details с нужным статусом. */
     public static ResponseSpecification problem(int statusCode) {
         return new ResponseSpecBuilder()
                 .expectStatusCode(statusCode)

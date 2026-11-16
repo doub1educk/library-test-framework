@@ -6,13 +6,10 @@ import java.util.HexFormat;
 import java.util.Locale;
 import java.util.concurrent.ThreadLocalRandom;
 
-/** Константы и генераторы тестовых данных для Flaky Radar. */
 public final class RadarTestData {
-
     public static final String ADMIN_TOKEN = "test-admin-token";
     public static final String PUBLIC_URL = "http://radar.test";
 
-    /** Имена тестов и ошибок, которые часто повторяются в сценариях. */
     public static final String SUITE = "ru.demo.CheckoutTest";
     public static final String ASSERTION = "org.opentest4j.AssertionFailedError";
     public static final String TIMEOUT = "java.net.SocketTimeoutException";
@@ -26,7 +23,6 @@ public final class RadarTestData {
         return "proj-" + FAKER.lorem().characters(8, false, false).toLowerCase(Locale.ROOT);
     }
 
-    /** Случайный «SHA коммита» из 40 hex-символов. */
     public static String commitSha() {
         byte[] bytes = new byte[20];
         ThreadLocalRandom.current().nextBytes(bytes);

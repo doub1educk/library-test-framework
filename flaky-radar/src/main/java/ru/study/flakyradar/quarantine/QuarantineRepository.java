@@ -11,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface QuarantineRepository extends JpaRepository<Quarantine, Long> {
-
     @Query("""
             select q from Quarantine q join fetch q.testCase
             where q.projectId = :projectId and q.removedAt is null
@@ -29,7 +28,6 @@ public interface QuarantineRepository extends JpaRepository<Quarantine, Long> {
                                     @Param("testCaseIds") Collection<Long> testCaseIds,
                                     @Param("now") Instant now);
 
-    /** Незакрытая запись (возможно, уже истёкшая): у теста она одна благодаря частичному уникальному индексу. */
     Optional<Quarantine> findByTestCaseIdAndRemovedAtIsNull(Long testCaseId);
 
     Optional<Quarantine> findByIdAndProjectId(Long id, Long projectId);

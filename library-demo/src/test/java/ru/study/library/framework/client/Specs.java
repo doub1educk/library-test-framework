@@ -4,11 +4,7 @@ import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import ru.study.testfw.http.RestAssuredSpecs;
 
-/**
- * Спеки API книг поверх общих {@link RestAssuredSpecs} из test-framework.
- */
 public final class Specs {
-
     public static final String BOOKS_PATH = "/api/v1/books";
 
     private Specs() {

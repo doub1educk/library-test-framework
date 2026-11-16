@@ -9,13 +9,8 @@ import ru.study.flakyradar.run.RunDtos.RunView;
 
 import java.util.List;
 
-/**
- * Сводка прогона для людей. Markdown идёт в комментарий PR и в GitHub Job Summary,
- * простой текст в Telegram. Все каналы строятся из одних и тех же {@link RunDetails}.
- */
 @Component
 public class SummaryRenderer {
-
     static final int MAX_ROWS = 20;
     private static final int MAX_MESSAGE = 140;
 
@@ -86,7 +81,6 @@ public class SummaryRenderer {
         return verdictLabel(item.verdict());
     }
 
-    /** Подпись вердикта для шаблонов дашборда (null -> пустая строка). */
     public String verdictText(Verdict verdict) {
         return verdict == null ? "" : verdictLabel(verdict);
     }
@@ -123,7 +117,6 @@ public class SummaryRenderer {
         return firstLine.length() <= MAX_MESSAGE ? firstLine : firstLine.substring(0, MAX_MESSAGE) + "…";
     }
 
-    /** Экранирование для ячейки markdown-таблицы. */
     private static String cell(String text) {
         return text.replace("|", "\\|").replace("`", "'").replace("\n", " ");
     }

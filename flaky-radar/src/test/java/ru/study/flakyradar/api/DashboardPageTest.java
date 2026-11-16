@@ -24,7 +24,6 @@ import static ru.study.flakyradar.framework.RadarTestData.fullName;
 @Feature("Дашборд")
 @DisplayName("UI: страницы дашборда (Thymeleaf)")
 class DashboardPageTest extends BaseRadarApiTest {
-
     private RunDetails run;
 
     @BeforeEach
@@ -42,7 +41,6 @@ class DashboardPageTest extends BaseRadarApiTest {
     void indexPage() {
         String html = page("/");
 
-        // карантин добавлен после загрузки: в списке решение на момент приёма, на странице прогона — текущее
         assertThat(html).contains(project.key()).contains("FAIL");
     }
 

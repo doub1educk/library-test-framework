@@ -16,11 +16,9 @@ import ru.study.flakyradar.analysis.GateEvaluator;
 import ru.study.flakyradar.analysis.Verdict;
 import ru.study.flakyradar.report.TestStatus;
 
-/** Результат одного теста в одном прогоне. */
 @Entity
 @Table(name = "test_result")
 public class TestResult {
-
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "test_result_seq")
     @SequenceGenerator(name = "test_result_seq", sequenceName = "test_result_seq", allocationSize = 50)
@@ -55,12 +53,10 @@ public class TestResult {
     @Column(length = 16)
     private Verdict verdict;
 
-    /** Был ли тест в карантине в момент загрузки. */
     @Column(nullable = false)
     private boolean quarantined;
 
     protected TestResult() {
-        // для JPA
     }
 
     public TestResult(TestRun run, TestCase testCase, TestStatus status, long durationMs, int failedAttempts,
@@ -80,7 +76,6 @@ public class TestResult {
         return status == TestStatus.PASSED && failedAttempts > 0;
     }
 
-    /** Исход для gate с учётом текущего карантина (он мог измениться после загрузки). */
     public GateEvaluator.Outcome outcome(boolean quarantinedNow) {
         return new GateEvaluator.Outcome(verdict, quarantinedNow, passedAfterRetry());
     }

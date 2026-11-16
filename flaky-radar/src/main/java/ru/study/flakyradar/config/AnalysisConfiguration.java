@@ -11,13 +11,8 @@ import ru.study.flakyradar.report.JUnitXmlParser;
 
 import java.time.Clock;
 
-/**
- * Пакеты {@code report} и {@code analysis} написаны на чистой Java и о Spring не знают.
- * Здесь они собираются в бины с порогами из настроек.
- */
 @Configuration(proxyBeanMethods = false)
 public class AnalysisConfiguration {
-
     @Bean
     DetectionPolicy detectionPolicy(FlakyRadarProperties properties) {
         return properties.detection().toPolicy();

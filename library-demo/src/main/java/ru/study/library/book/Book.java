@@ -13,7 +13,6 @@ import java.time.Instant;
 @Entity
 @Table(name = "books")
 public class Book {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,7 +36,6 @@ public class Book {
     private Instant createdAt;
 
     protected Book() {
-        // для JPA
     }
 
     public Book(String title, String author, String isbn, Integer publishedYear) {

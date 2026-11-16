@@ -6,14 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
-/**
- * PostgreSQL в Docker для любого Spring Boot приложения проекта.
- * {@code @ServiceConnection} сам подставляет url, логин и пароль в DataSource.
- * Spring кэширует контекст, поэтому контейнер поднимается один раз на все тесты с одинаковой конфигурацией.
- */
 @TestConfiguration(proxyBeanMethods = false)
 public class PostgresContainerConfiguration {
-
     public static final String IMAGE = "postgres:17-alpine";
 
     @Bean

@@ -11,10 +11,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * Одна аннотация вместо пяти: Spring на случайном порту, PostgreSQL в Docker
- * и снимок таблицы books при падении (всё из общего test-framework).
- */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Tag("api")

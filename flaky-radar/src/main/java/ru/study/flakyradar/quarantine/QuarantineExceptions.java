@@ -1,8 +1,6 @@
 package ru.study.flakyradar.quarantine;
 
-/** Исключения фичи «карантин». */
 public final class QuarantineExceptions {
-
     private QuarantineExceptions() {
     }
 

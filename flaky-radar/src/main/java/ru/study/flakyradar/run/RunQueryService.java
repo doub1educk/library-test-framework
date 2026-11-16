@@ -23,14 +23,9 @@ import ru.study.flakyradar.run.RunExceptions.RunNotFoundException;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Чтение прогонов. Gate пересчитывается при каждом запросе с учётом текущего карантина:
- * если тест отправили в карантин после загрузки, повторный запрос gate уже не будет FAIL.
- */
 @Service
 @Transactional(readOnly = true)
 public class RunQueryService {
-
     static final int MAX_LIMIT = 200;
 
     private final TestRunRepository runRepository;
@@ -71,7 +66,6 @@ public class RunQueryService {
         return details(projectKey, runId).gate();
     }
 
-    /** Детали прогона, когда проект и прогон уже загружены (например, сразу после приёма отчёта). */
     public RunDetails details(Project project, TestRun run) {
         List<TestResult> problems = resultRepository.findProblemsByRunId(run.getId());
         Set<Long> quarantined = quarantineService.activeTestCaseIds(project.getId(),

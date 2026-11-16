@@ -11,14 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Запросы истории, которые неудобно выражать через JPA. Окно последних N результатов
- * для многих тестов сразу берётся одним запросом с оконной функцией row_number().
- */
 @Repository
 public class TestHistoryQueries {
-
-    /** Ограничение на число параметров в IN, чтобы не упереться в лимит драйвера на больших отчётах. */
     private static final int CHUNK = 1000;
 
     private final JdbcClient jdbc;
@@ -27,9 +21,6 @@ public class TestHistoryQueries {
         this.jdbc = jdbc;
     }
 
-    /**
-     * Последние {@code window} результатов каждого теста, в хронологическом порядке (самый новый последним).
-     */
     public Map<Long, List<HistoryPoint>> lastResults(Collection<Long> testCaseIds, int window) {
         Map<Long, List<HistoryPoint>> history = new HashMap<>();
         List<Long> ids = List.copyOf(testCaseIds);

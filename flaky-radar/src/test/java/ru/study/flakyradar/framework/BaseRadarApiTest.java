@@ -8,13 +8,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import ru.study.testfw.db.DatabaseCleaner;
 
-/**
- * База для API-тестов: перед каждым тестом чистая БД, сброшенный мок Telegram
- * и свежий проект со своим API-ключом. Тесты не влияют друг на друга.
- */
 @RadarApiTest
 public abstract class BaseRadarApiTest {
-
     @LocalServerPort
     protected int port;
 

@@ -33,10 +33,8 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-/** Все ошибки API отдаются в формате RFC 9457 Problem Details, заголовки по-русски. */
 @RestControllerAdvice(annotations = RestController.class)
 public class GlobalExceptionHandler {
-
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler({ProjectNotFoundException.class, RunNotFoundException.class, TestCaseNotFoundException.class,
@@ -109,7 +107,6 @@ public class GlobalExceptionHandler {
                 "Параметр '" + e.getName() + "' имеет неверный формат");
     }
 
-    /** Параллельные загрузки могут одновременно создать один и тот же тест или подпись: клиенту стоит повторить. */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ProblemDetail handleIntegrity(DataIntegrityViolationException e) {
         log.warn("Нарушение ограничения БД: {}", e.getMostSpecificCause().getMessage());

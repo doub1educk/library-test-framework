@@ -11,10 +11,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * API-тест Flaky Radar: сервис на случайном порту, PostgreSQL в Docker, снимок таблиц при падении.
- * Всё, кроме настроек сервиса, приходит из общего test-framework.
- */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Tag("api")

@@ -15,7 +15,6 @@
     <description>Демо-проект «Библиотека»: REST-сервис книг, результаты его тестов отправляются в Flaky Radar</description>
 
     <dependencies>
-        <!-- ===== Приложение ===== -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -50,7 +49,6 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
 
-        <!-- ===== Тесты: общий фреймворк тянет JUnit, RestAssured, Testcontainers, WireMock, Allure, ArchUnit ===== -->
         <dependency>
             <groupId>ru.study</groupId>
             <artifactId>test-framework</artifactId>
@@ -93,7 +91,6 @@
     </build>
 
     <profiles>
-        <!-- Мутационное тестирование: mvn -pl library-demo -am -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage -->
         <profile>
             <id>mutation</id>
             <build>

@@ -21,7 +21,6 @@ import java.util.Set;
 @Service
 @Transactional(readOnly = true)
 public class QuarantineService {
-
     private final QuarantineRepository repository;
     private final TestCaseRepository testCaseRepository;
     private final ProjectService projectService;
@@ -46,7 +45,6 @@ public class QuarantineService {
             if (existing.isActiveAt(now)) {
                 throw new AlreadyQuarantinedException(testCase.getFullName());
             }
-            // срок истёк, но запись не закрыта: закрываем, чтобы не мешала уникальному индексу
             existing.remove(now);
             repository.flush();
         });
@@ -72,7 +70,6 @@ public class QuarantineService {
                 .toList();
     }
 
-    /** Какие из тестов сейчас в карантине. Для приёма отчётов и gate. */
     public Set<Long> activeTestCaseIds(Long projectId, Collection<Long> testCaseIds) {
         if (testCaseIds.isEmpty()) {
             return Set.of();

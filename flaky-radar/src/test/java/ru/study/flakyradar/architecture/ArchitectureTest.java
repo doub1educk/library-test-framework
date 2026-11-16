@@ -11,13 +11,9 @@ import ru.study.testfw.architecture.CommonArchRules;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
 
-/**
- * Общие правила из test-framework плюс правила, специфичные для Flaky Radar.
- */
 @ArchTag("architecture")
 @AnalyzeClasses(packages = "ru.study.flakyradar", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArchitectureTest {
-
     @ArchTest
     static final ArchTests common = ArchTests.in(CommonArchRules.class);
 

@@ -26,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @Feature("Определение нестабильных тестов")
 @DisplayName("Unit: FlakinessDetector")
 class FlakinessDetectorTest {
-
     private final FlakinessDetector detector = new FlakinessDetector(DetectionPolicy.DEFAULT);
 
     @Test
@@ -144,7 +143,6 @@ class FlakinessDetectorTest {
     void configurableThreshold(int minFlips) {
         FlakinessDetector custom = new FlakinessDetector(new DetectionPolicy(30, 5, minFlips, 3));
 
-        // P->F, F->P, P->F: ровно 3 переключения
         FlakinessAssessment result = custom.assess(sequence("PPPFPPF"));
 
         assertThat(result.flips()).isEqualTo(3);
@@ -159,7 +157,6 @@ class FlakinessDetectorTest {
         assertThatThrownBy(() -> new DetectionPolicy(10, 20, 3, 3)).isInstanceOf(IllegalArgumentException.class);
     }
 
-    /** P = прошёл, F = упал, S = пропущен; каждый результат на своём коммите. */
     static List<HistoryPoint> sequence(String pattern) {
         List<HistoryPoint> points = new ArrayList<>();
         for (int i = 0; i < pattern.length(); i++) {

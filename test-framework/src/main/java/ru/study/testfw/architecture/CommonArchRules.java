@@ -12,13 +12,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_USE_FIELD_INJECTION;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 
-/**
- * Архитектурные правила, общие для всех Spring Boot сервисов проекта.
- * Подключаются в тест-классе модуля строкой
- * {@code @ArchTest static final ArchTests common = ArchTests.in(CommonArchRules.class);}
- */
 public final class CommonArchRules {
-
     @ArchTest
     public static final ArchRule controllersDoNotUseRepositoriesDirectly = noClasses()
             .that().areAnnotatedWith(RestController.class)

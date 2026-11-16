@@ -18,13 +18,8 @@ import ru.study.flakyradar.run.SummaryRenderer;
 import java.net.http.HttpClient;
 import java.util.Map;
 
-/**
- * Отправляет сводку прогона в Telegram после коммита транзакции приёма.
- * Ошибки Telegram только логируются: уведомление не должно ломать загрузку отчёта из CI.
- */
 @Component
 public class TelegramNotifier {
-
     private static final Logger log = LoggerFactory.getLogger(TelegramNotifier.class);
 
     private final TelegramProperties properties;
@@ -65,7 +60,6 @@ public class TelegramNotifier {
     void send(String text) {
         try {
             restClient.post()
-                    // токен вида 123:abc: шаблон URI закодировал бы двоеточие, поэтому путь собирается строкой
                     .uri("/bot" + properties.botToken() + "/sendMessage")
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("chat_id", properties.chatId(), "text", text, "disable_web_page_preview", true))

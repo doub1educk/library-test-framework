@@ -9,18 +9,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Намеренно нестабильный тест для демонстрации Flaky Radar в CI.
- * В обычном прогоне исключён (тег flaky-demo). В dogfooding-джобе CI запускает тесты Библиотеки дважды
- * на одном коммите: в первой попытке с LIBRARY_DEMO_FLAKY=fail (тест падает), во второй без неё (проходит).
- * Flaky Radar видит «упал и прошёл на одном коммите» и помечает тест нестабильным.
- */
 @Tag("flaky-demo")
 @Epic("Библиотека")
 @Feature("Демонстрация нестабильного теста")
 @DisplayName("DEMO: нестабильный тест для Flaky Radar")
 class FlakyDemoTest {
-
     @Test
     @Description("Падает, только если задана переменная окружения LIBRARY_DEMO_FLAKY=fail")
     @DisplayName("Ответ внешнего сервиса приходит вовремя (иногда нет)")

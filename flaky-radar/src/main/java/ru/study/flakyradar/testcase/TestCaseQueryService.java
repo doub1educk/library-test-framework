@@ -26,11 +26,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/** Чтение тестов, их истории и групп ошибок. */
 @Service
 @Transactional(readOnly = true)
 public class TestCaseQueryService {
-
     private static final int MAX_LIMIT = 500;
 
     private final ProjectService projectService;
@@ -51,7 +49,6 @@ public class TestCaseQueryService {
         this.policy = policy;
     }
 
-    /** Нестабильные тесты: сначала те, что переключаются чаще. */
     public List<TestCaseView> flaky(String projectKey) {
         Project project = projectService.require(projectKey);
         return withQuarantine(project, testCaseRepository.findByProjectIdAndFlakyTrueOrderByFlipCountDescFullNameAsc(project.getId()));
@@ -74,7 +71,6 @@ public class TestCaseQueryService {
         return new TestHistoryView(TestCaseView.from(testCase, quarantined), results);
     }
 
-    /** Группы ошибок: недавние и частые сверху. */
     public List<SignatureView> signatures(String projectKey, int limit) {
         Project project = projectService.require(projectKey);
         List<FailureSignature> signatures = signatureRepository.findByProjectIdOrderByLastSeenDescOccurrencesDesc(

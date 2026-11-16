@@ -8,8 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface TestResultRepository extends JpaRepository<TestResult, Long> {
-
-    /** Упавшие и прошедшие только после повтора результаты прогона: всё, что интересно человеку и gate. */
     @Query("""
             select r from TestResult r
               join fetch r.testCase
@@ -21,7 +19,6 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
             """)
     List<TestResult> findProblemsByRunId(@Param("runId") Long runId);
 
-    /** История одного теста, самые новые первыми. */
     @Query("""
             select r from TestResult r
               join fetch r.run
@@ -31,7 +28,6 @@ public interface TestResultRepository extends JpaRepository<TestResult, Long> {
             """)
     List<TestResult> findHistory(@Param("testCaseId") Long testCaseId, Pageable pageable);
 
-    /** Последние падения с данной подписью. */
     @Query("""
             select r from TestResult r
               join fetch r.run

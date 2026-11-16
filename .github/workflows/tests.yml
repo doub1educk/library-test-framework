@@ -15,9 +15,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # 1. Все тесты всех модулей + проверка покрытия + Allure-отчёты на GitHub Pages
-  # ---------------------------------------------------------------------------
   test:
     runs-on: ubuntu-latest
     steps:
@@ -103,12 +100,6 @@ jobs:
           publish_branch: gh-pages
           publish_dir: site
 
-  # ---------------------------------------------------------------------------
-  # 2. Dogfooding: тесты «Библиотеки» отправляются в Flaky Radar, CI слушается gate.
-  #    Если задан секрет RADAR_URL, используется постоянный сервер (с накопленной историей).
-  #    Иначе Flaky Radar поднимается прямо в джобе, и сценарий «перезапуск CI» эмулируется
-  #    двумя попытками на одном коммите: в первой демо-тест падает, во второй проходит.
-  # ---------------------------------------------------------------------------
   dogfood:
     needs: test
     runs-on: ubuntu-latest
@@ -128,7 +119,6 @@ jobs:
       RADAR_PROJECT: library-demo
       RADAR_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
       ADMIN_TOKEN: ci-admin-token
-      # секреты нельзя использовать в if напрямую, поэтому признак выносится в переменную
       EXTERNAL_RADAR: ${{ secrets.RADAR_URL != '' }}
       EXTERNAL_API_KEY: ${{ secrets.RADAR_API_KEY }}
     steps:

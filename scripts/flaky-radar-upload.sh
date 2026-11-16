@@ -1,19 +1,4 @@
 #!/usr/bin/env bash
-# Отправляет JUnit XML в Flaky Radar и проверяет решение gate.
-#
-#   RADAR_URL=https://radar.example RADAR_PROJECT=library RADAR_API_KEY=frk_... \
-#     scripts/flaky-radar-upload.sh library-demo/target/surefire-reports
-#
-# Переменные (в GitHub Actions большинство берётся из окружения автоматически):
-#   RADAR_URL, RADAR_PROJECT, RADAR_API_KEY  — обязательные
-#   RADAR_BRANCH   — по умолчанию GITHUB_HEAD_REF (PR) или GITHUB_REF_NAME, иначе текущая git-ветка
-#   RADAR_COMMIT   — по умолчанию GITHUB_SHA, иначе git rev-parse HEAD
-#   RADAR_ATTEMPT  — по умолчанию GITHUB_RUN_ATTEMPT или 1
-#   RADAR_CI_RUN   — по умолчанию GITHUB_RUN_ID (вместе с attempt делает загрузку идемпотентной)
-#   RADAR_BUILD_URL — ссылка на прогон CI
-#   RADAR_ENFORCE  — "true" (по умолчанию): код возврата 1, если решение FAIL
-#
-# Результат: radar-summary.md (markdown для PR / Job Summary) и, в GitHub Actions, outputs decision и run_id.
 set -euo pipefail
 
 reports_dir="${1:?Укажите каталог с отчётами JUnit XML}"

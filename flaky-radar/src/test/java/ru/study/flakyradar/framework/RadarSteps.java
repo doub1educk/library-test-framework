@@ -16,9 +16,7 @@ import ru.study.testfw.junitxml.JUnitXmlBuilder;
 
 import java.util.List;
 
-/** Бизнес-шаги на языке предметной области; каждый виден в Allure как шаг. */
 public class RadarSteps {
-
     private final RadarClient client;
 
     public RadarSteps(RadarClient client) {
@@ -41,7 +39,6 @@ public class RadarSteps {
                 .extract().as(RunDetails.class);
     }
 
-    /** Короткая форма: отчёт на ветке main с новым коммитом. */
     public RunDetails upload(TestProject project, JUnitXmlBuilder report) {
         return upload(project, RunUpload.of(report));
     }
@@ -108,7 +105,6 @@ public class RadarSteps {
         client.removeQuarantine(project.key(), project.apiKey(), id).then().spec(RestAssuredSpecs.status(204));
     }
 
-    /** Результат конкретного теста среди упавших/предупреждений прогона. */
     public static ResultView problem(RunDetails details, String fullName) {
         return details.problems().stream()
                 .filter(p -> p.testName().equals(fullName))

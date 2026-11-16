@@ -1,8 +1,6 @@
 package ru.study.flakyradar.history;
 
-/** Исключения фичи «тесты». */
 public final class TestCaseExceptions {
-
     private TestCaseExceptions() {
     }
 

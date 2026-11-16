@@ -14,10 +14,6 @@
     <name>test-framework</name>
     <description>Общая тестовая инфраструктура: Testcontainers, RestAssured + Allure, очистка и снимки БД, генератор JUnit XML</description>
 
-    <!--
-        Это библиотека для тестов: все зависимости в compile scope,
-        а модули подключают сам test-framework в scope test.
-    -->
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -31,7 +27,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
         </dependency>
-        <!-- только для общих ArchUnit-правил (аннотации и интерфейсы), реализации приходят из сервисов -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>

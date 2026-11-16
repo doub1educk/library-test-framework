@@ -11,22 +11,7 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/**
- * Потоковый разбор JUnit XML (Surefire/Gradle, Playwright, pytest и т.п.) на StAX.
- *
- * <p>Поддерживается:
- * <ul>
- *     <li>корень {@code <testsuites>} или {@code <testsuite>}, вложенные testsuite;</li>
- *     <li>{@code <failure>}, {@code <error>}, {@code <skipped>};</li>
- *     <li>Surefire-ретраи: {@code <flakyFailure>/<flakyError>} (в итоге прошёл)
- *         и {@code <rerunFailure>/<rerunError>} (упал во всех повторах);</li>
- *     <li>повтор одного и того же теста внутри отчёта: выполнения сливаются, итог по последнему.</li>
- * </ul>
- *
- * <p>DTD и внешние сущности выключены, поэтому XXE-атаки не работают. Класс без состояния и потокобезопасен.
- */
 public final class JUnitXmlParser {
-
     private static final XMLInputFactory FACTORY = createFactory();
 
     public ParsedReport parse(InputStream input) {
@@ -63,7 +48,6 @@ public final class JUnitXmlParser {
                         cases.merge(tc.fullName(), tc, ParsedReport::combine);
                     }
                     default -> {
-                        // testsuites, properties и прочее: идём глубже
                     }
                 }
             } else if (event == XMLStreamConstants.END_ELEMENT && reader.getLocalName().equals("testsuite")) {
@@ -133,10 +117,6 @@ public final class JUnitXmlParser {
         return new ParsedTestCase(suite, name, status, durationMs, failure, failedAttempts);
     }
 
-    /**
-     * Читает элемент падения: атрибуты type и message плюс текст. Текст берётся из самого элемента
-     * и из дочернего {@code <stackTrace>} (так пишет Surefire во flakyFailure), а system-out и прочее пропускается.
-     */
     private ParsedFailure readProblem(XMLStreamReader reader) throws XMLStreamException {
         String type = attr(reader, "type");
         String message = attr(reader, "message");
@@ -165,7 +145,6 @@ public final class JUnitXmlParser {
                     }
                 }
                 default -> {
-                    // комментарии и инструкции обработки игнорируем
                 }
             }
         }
@@ -184,7 +163,6 @@ public final class JUnitXmlParser {
         }
     }
 
-    /** Время в секундах: «1.5», «0,25» (десятичная запятая), «1,234.5» (разделитель тысяч). */
     static long parseDurationMs(String seconds) {
         if (seconds.isEmpty()) {
             return 0;

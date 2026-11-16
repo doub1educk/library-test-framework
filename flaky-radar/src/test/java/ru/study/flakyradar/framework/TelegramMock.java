@@ -13,9 +13,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
-/** WireMock вместо Telegram Bot API. Один сервер на все тесты, сценарии сбрасываются перед каждым тестом. */
 public final class TelegramMock {
-
     public static final String BOT_TOKEN = "123:test-token";
     public static final String CHAT_ID = "-1001";
     private static final String SEND_MESSAGE = "/bot" + BOT_TOKEN + "/sendMessage";
@@ -44,7 +42,6 @@ public final class TelegramMock {
         SERVER.stubFor(post(urlPathEqualTo(SEND_MESSAGE)).willReturn(aResponse().withStatus(status)));
     }
 
-    /** Тела всех отправленных сообщений. */
     public static List<String> sentMessages() {
         return SERVER.findAll(postRequestedFor(urlPathEqualTo(SEND_MESSAGE))).stream()
                 .map(LoggedRequest::getBodyAsString)

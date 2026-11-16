@@ -5,14 +5,8 @@ import ru.study.testfw.junitxml.JUnitXmlBuilder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-/**
- * Что отправляет CI: файлы отчёта и метаданные прогона. Иммутабельный, с with-методами.
- *
- * <pre>{@code RunUpload.of(report).branch("main").commit(sha).attempt(2)}</pre>
- */
 public record RunUpload(List<byte[]> reports, String branch, String commit, Integer attempt, String ciRunId,
                         String buildUrl) {
-
     public static RunUpload of(JUnitXmlBuilder report) {
         return new RunUpload(List.of(report.toBytes()), "main", RadarTestData.commitSha(), 1, null, null);
     }

@@ -6,9 +6,7 @@ import jakarta.validation.constraints.Size;
 
 import java.time.Instant;
 
-/** DTO фичи «проекты». */
 public final class ProjectDtos {
-
     private ProjectDtos() {
     }
 
@@ -20,13 +18,11 @@ public final class ProjectDtos {
     }
 
     public record ProjectResponse(String key, String name, Instant createdAt) {
-
         static ProjectResponse from(Project project) {
             return new ProjectResponse(project.getKey(), project.getName(), project.getCreatedAt());
         }
     }
 
-    /** Ответ на создание проекта и перевыпуск ключа: ключ показывается только здесь. */
     public record ProjectCredentials(String key, String name, String apiKey) {
     }
 }

@@ -9,9 +9,7 @@ import ru.study.flakyradar.report.TestStatus;
 import java.time.Instant;
 import java.util.List;
 
-/** DTO тестов и подписей ошибок. */
 public final class TestCaseDtos {
-
     private TestCaseDtos() {
     }
 
@@ -26,7 +24,6 @@ public final class TestCaseDtos {
             Instant firstSeen,
             Instant lastSeen,
             boolean quarantined) {
-
         static TestCaseView from(TestCase tc, boolean quarantined) {
             return new TestCaseView(tc.getId(), tc.getFullName(), tc.getSuite(), tc.getName(), tc.isFlaky(),
                     tc.getFlipCount(), tc.getLastStatus(), tc.getFirstSeen(), tc.getLastSeen(), quarantined);
@@ -45,7 +42,6 @@ public final class TestCaseDtos {
             Verdict verdict,
             String message,
             Long signatureId) {
-
         static HistoryEntry from(TestResult r) {
             return new HistoryEntry(r.getRun().getId(), r.getRun().getBranch(), r.getRun().getCommitSha(),
                     r.getRun().getAttempt(), r.getRun().getReceivedAt(), r.getStatus(), r.getDurationMs(),
@@ -62,7 +58,6 @@ public final class TestCaseDtos {
         }
     }
 
-    /** История теста: самые новые результаты первыми. */
     public record TestHistoryView(TestCaseView test, List<HistoryEntry> results) {
     }
 
@@ -76,7 +71,6 @@ public final class TestCaseDtos {
             long affectedTests,
             Instant firstSeen,
             Instant lastSeen) {
-
         static SignatureView from(FailureSignature s, long affectedTests) {
             return new SignatureView(s.getId(), s.getHash(), s.getExceptionType(), s.getNormalizedText(),
                     s.getSampleMessage(), s.getOccurrences(), affectedTests, s.getFirstSeen(), s.getLastSeen());
@@ -89,7 +83,6 @@ public final class TestCaseDtos {
 
     public record SignatureOccurrence(Long runId, String branch, String commitSha, Instant receivedAt,
                                       Long testCaseId, String testName, TestStatus status) {
-
         static SignatureOccurrence from(TestResult r) {
             return new SignatureOccurrence(r.getRun().getId(), r.getRun().getBranch(), r.getRun().getCommitSha(),
                     r.getRun().getReceivedAt(), r.getTestCase().getId(), r.getTestCase().getFullName(), r.getStatus());
