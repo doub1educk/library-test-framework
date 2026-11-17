@@ -1,0 +1,28 @@
+<div>POST to http://localhost:45887/api/v1/projects</div>
+
+    <h4>Body</h4>
+    <div>
+    <pre class="preformated-text">
+{
+    &quot;key&quot;: &quot;proj-pnofuwpv&quot;,
+    &quot;name&quot;: &quot;Проект proj-pnofuwpv&quot;
+}    </pre>
+    </div>
+
+    <h4>Headers</h4>
+    <div>
+            <div>Accept: */*</div>
+            <div>X-Admin-Token: test-admin-token</div>
+            <div>Content-Type: application/json</div>
+    </div>
+
+
+
+    <h4>Curl</h4>
+    <div>
+        curl -v -X POST &#39;http://localhost:45887/api/v1/projects&#39; -H &#39;Accept: */*&#39; -H &#39;X-Admin-Token: test-admin-token&#39; -H &#39;Content-Type: application/json&#39; -d &#39;{
+    &quot;key&quot;: &quot;proj-pnofuwpv&quot;,
+    &quot;name&quot;: &quot;Проект proj-pnofuwpv&quot;
+}&#39;
+    </div>
+
