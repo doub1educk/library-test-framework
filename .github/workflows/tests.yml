@@ -139,6 +139,10 @@ jobs:
 
       - name: Start Flaky Radar
         if: env.EXTERNAL_RADAR != 'true'
+        env:
+          FLAKY_RADAR_TELEGRAM_ENABLED: ${{ secrets.TELEGRAM_BOT_TOKEN != '' }}
+          FLAKY_RADAR_TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          FLAKY_RADAR_TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           FLAKY_RADAR_ADMIN_TOKEN="$ADMIN_TOKEN" FLAKY_RADAR_PUBLIC_URL="$RADAR_URL" \
             nohup java -jar flaky-radar.jar > radar.log 2>&1 &
